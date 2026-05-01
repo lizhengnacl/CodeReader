@@ -1,17 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Settings, Plus, FolderGit2, ChevronRight } from 'lucide-react';
-
-const MOCK_PROJECTS = [
-  { id: '1', name: 'frontend-web', path: '/Users/dev/projects/frontend-web', branch: 'main', files: 1250, hasChanges: true, languages: [{ name: 'TypeScript', percent: 70, color: '#3178c6' }, { name: 'CSS', percent: 20, color: '#563d7c' }, { name: 'HTML', percent: 10, color: '#e34c26' }] },
-  { id: '2', name: 'backend-api', path: '/Users/dev/projects/backend-api', branch: 'develop', files: 850, hasChanges: false, languages: [{ name: 'Go', percent: 90, color: '#00ADD8' }, { name: 'Shell', percent: 10, color: '#89e051' }] },
-];
 
 export default function ProjectList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredProjects = MOCK_PROJECTS.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => {
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => {
+        setProjects(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -44,35 +51,41 @@ export default function ProjectList() {
 
       {/* Project List */}
       <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-        {filteredProjects.map(project => (
-          <div
-            key={project.id}
-            onClick={() => navigate(`/workspace/${project.id}?tab=files`)}
-            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 active:scale-[0.98] transition-transform cursor-pointer relative"
-          >
-            {project.hasChanges && (
-              <div className="absolute top-4 right-4 w-2.5 h-2.5 bg-orange-500 rounded-full" />
-            )}
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{project.name}</h3>
-            <p className="text-sm text-gray-500 mb-3 truncate">{project.path}</p>
-            
-            {/* Language Bar */}
-            <div className="h-1.5 w-full rounded-full overflow-hidden flex mb-3">
-              {project.languages.map(lang => (
-                <div key={lang.name} style={{ width: `${lang.percent}%`, backgroundColor: lang.color }} />
-              ))}
-            </div>
-            
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <div className="flex items-center gap-3">
-                <span className="px-2 py-1 bg-gray-100 rounded-md font-mono">{project.branch}</span>
-                <span>{project.files} 个文件</span>
+        {loading ? (
+          <div className="text-center py-10 text-gray-400">加载中...</div>
+        ) : (
+          filteredProjects.map(project => (
+            <div
+              key={project.id}
+              onClick={() => navigate(`/workspace/${project.id}?tab=files`)}
+              className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 active:scale-[0.98] transition-transform cursor-pointer relative"
+            >
+              {project.hasChanges && (
+                <div className="absolute top-4 right-4 w-2.5 h-2.5 bg-orange-500 rounded-full" />
+              )}
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{project.name}</h3>
+              <p className="text-sm text-gray-500 mb-3 truncate">{project.path}</p>
+              
+              {/* Language Bar */}
+              {project.languages && project.languages.length > 0 && (
+                <div className="h-1.5 w-full rounded-full overflow-hidden flex mb-3">
+                  {project.languages.map(lang => (
+                    <div key={lang.name} style={{ width: `${lang.percent}%`, backgroundColor: lang.color }} />
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-3">
+                  <span className="px-2 py-1 bg-gray-100 rounded-md font-mono">{project.branch}</span>
+                  <span>{project.files} 个文件</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
             </div>
-          </div>
-        ))}
-        {filteredProjects.length === 0 && (
+          ))
+        )}
+        {!loading && filteredProjects.length === 0 && (
           <div className="text-center py-10 text-gray-500">
             未找到匹配的项目
           </div>

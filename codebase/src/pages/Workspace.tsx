@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Folder, Search, GitBranch, Settings } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -12,6 +12,14 @@ export default function Workspace() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const tab = searchParams.get('tab') || 'files';
+  const [project, setProject] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`/api/projects/${projectId}`)
+      .then(res => res.json())
+      .then(setProject)
+      .catch(() => {});
+  }, [projectId]);
 
   const tabs = [
     { id: 'files', label: '文件', icon: Folder },
@@ -24,9 +32,9 @@ export default function Workspace() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Content Area */}
       <div className="flex-1 overflow-hidden flex flex-col">
-        {tab === 'files' && <FilesTab projectId={projectId || ''} />}
-        {tab === 'search' && <SearchTab />}
-        {tab === 'git' && <GitTab />}
+        {tab === 'files' && <FilesTab projectId={projectId || ''} project={project} />}
+        {tab === 'search' && <SearchTab projectId={projectId || ''} />}
+        {tab === 'git' && <GitTab projectId={projectId || ''} />}
         {tab === 'settings' && <SettingsTab />}
       </div>
 
