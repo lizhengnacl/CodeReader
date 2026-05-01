@@ -43,6 +43,6 @@ app.delete('/api/projects/:projectId', (req, res) => {
   res.json(result);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`CodeReader API server running at http://localhost:${PORT}`);
 });

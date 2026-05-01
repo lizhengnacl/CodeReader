@@ -7,6 +7,10 @@
     {
       "name": "AgentPilot",
       "path": "../AgentPilot"
+    },
+    {
+      "name": "cyborg",
+      "path": "../cyborg"
     }
   ]
 }
