@@ -15,37 +15,36 @@ export function gitStatus(req, res) {
       encoding: 'utf-8',
     }).trim();
 
-    const porcelain = execSync('git status --porcelain', {
+    const raw = execSync('git status --porcelain', {
       cwd: projectRoot,
       encoding: 'utf-8',
-    }).trim();
+    });
 
     const staged = [];
     const unstaged = [];
 
-    if (porcelain) {
-      for (const line of porcelain.split('\n')) {
-        const indexStatus = line[0];
-        const workTreeStatus = line[1];
-        const filePath = line.slice(3);
+    const lines = raw.split('\n').filter(l => l.length >= 3);
+    for (const line of lines) {
+      const indexStatus = line[0];
+      const workTreeStatus = line[1];
+      const filePath = line.slice(3);
 
-        const statusMap = {
-          'M': 'M', 'A': 'A', 'D': 'D', 'R': 'R', 'C': 'C', '?': 'U', '!': 'I',
-        };
+      const statusMap = {
+        'M': 'M', 'A': 'A', 'D': 'D', 'R': 'R', 'C': 'C', '?': 'U', '!': 'I',
+      };
 
-        if (indexStatus !== ' ' && indexStatus !== '?') {
-          staged.push({
-            filePath,
-            status: statusMap[indexStatus] || indexStatus,
-          });
-        }
+      if (indexStatus !== ' ' && indexStatus !== '?') {
+        staged.push({
+          filePath,
+          status: statusMap[indexStatus] || indexStatus,
+        });
+      }
 
-        if (workTreeStatus !== ' ' || indexStatus === '?') {
-          unstaged.push({
-            filePath,
-            status: indexStatus === '?' ? 'U' : (statusMap[workTreeStatus] || workTreeStatus),
-          });
-        }
+      if (workTreeStatus !== ' ' || indexStatus === '?') {
+        unstaged.push({
+          filePath,
+          status: indexStatus === '?' ? 'U' : (statusMap[workTreeStatus] || workTreeStatus),
+        });
       }
     }
 
