@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MoreVertical, ChevronRight, Folder as FolderIcon, File as FileIcon, Search, Star } from 'lucide-react';
+import { ChevronLeft, MoreVertical, ChevronRight, Folder as FolderIcon, Search, Star } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import FileIconByType from '../../components/FileIconByType';
 
 export default function FilesTab({ projectId, project }: { projectId: string; project: any }) {
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ export default function FilesTab({ projectId, project }: { projectId: string; pr
                 className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 dark:active:bg-gray-700 cursor-pointer"
                 onClick={() => navigate(`/workspace/${projectId}/code?file=${encodeURIComponent(file.path)}`)}
               >
-                <FileIcon className="w-5 h-5 text-gray-400 dark:text-gray-500 shrink-0" />
+                <FileIconByType fileName={file.name} className="w-5 h-5 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{file.name}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{file.size} · {file.modified}</div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search, FileText, Type, History } from 'lucide-react';
+import { Search, FileSearch, Type, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import FileIconByType from '../../components/FileIconByType';
 
 export default function SearchTab({ projectId }: { projectId: string }) {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function SearchTab({ projectId }: { projectId: string }) {
   const [searched, setSearched] = useState(false);
 
   const tabs = [
-    { id: 'file', label: '文件名', icon: FileText },
+    { id: 'file', label: '文件名', icon: FileSearch },
     { id: 'content', label: '内容', icon: Search },
     { id: 'symbol', label: '符号', icon: Type },
     { id: 'git', label: 'Git', icon: History },
@@ -144,7 +145,7 @@ export default function SearchTab({ projectId }: { projectId: string }) {
                   onClick={() => openFile(item.filePath)}
                 >
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+                    <FileIconByType fileName={item.fileName} className="w-4 h-4 shrink-0" />
                     <span className="text-sm text-gray-500 dark:text-gray-400 truncate">{getDirPath(item.filePath, item.fileName)}/</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100 shrink-0">{highlightMatch(item.fileName, query)}</span>
                   </div>
@@ -158,7 +159,7 @@ export default function SearchTab({ projectId }: { projectId: string }) {
                   onClick={() => openFile(item.filePath)}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+                    <FileIconByType fileName={item.fileName} className="w-4 h-4 shrink-0" />
                     <span className="text-sm text-gray-500 dark:text-gray-400 truncate">{getDirPath(item.filePath, item.fileName)}/</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100 shrink-0">{item.fileName}</span>
                   </div>
