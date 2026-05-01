@@ -113,37 +113,36 @@ export default function GitTab({ projectId }: { projectId: string }) {
   };
 
   const statusColor = (status: string) => {
-    if (status === 'M') return 'text-orange-600 bg-orange-50 border-orange-200';
-    if (status === 'A') return 'text-green-600 bg-green-50 border-green-200';
-    if (status === 'D') return 'text-red-600 bg-red-50 border-red-200';
-    if (status === 'U') return 'text-gray-500 bg-gray-100 border-gray-200';
-    return 'text-gray-500 bg-gray-100 border-gray-200';
+    if (status === 'M') return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800';
+    if (status === 'A') return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
+    if (status === 'D') return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
+    if (status === 'U') return 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-700';
+    return 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-700';
   };
 
-  // Diff detail view
   if (diffData) {
     return (
-      <div className="flex flex-col h-full bg-gray-50">
-        <header className="bg-white px-4 py-3 border-b border-gray-200 shrink-0 flex items-center gap-3">
-          <button onClick={() => setDiffData(null)} className="p-1 -ml-1 text-gray-600 hover:bg-gray-100 rounded-full">
+      <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0 flex items-center gap-3">
+          <button onClick={() => setDiffData(null)} className="p-1 -ml-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-gray-900 truncate">{diffData.filePath}</h2>
-            <span className="text-xs text-gray-500">{diffData.type === 'staged' ? '已暂存的变更' : '未暂存的变更'}</span>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{diffData.filePath}</h2>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{diffData.type === 'staged' ? '已暂存的变更' : '未暂存的变更'}</span>
           </div>
         </header>
 
         <div className="flex-1 overflow-auto">
           {diffLoading ? (
-            <div className="text-center py-10 text-gray-400">加载中...</div>
+            <div className="text-center py-10 text-gray-400 dark:text-gray-500">加载中...</div>
           ) : diffData.hunks.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">无变更内容</div>
+            <div className="text-center py-10 text-gray-400 dark:text-gray-500">无变更内容</div>
           ) : (
             <div className="min-w-max">
             {diffData.hunks.map((hunk, hi) => (
               <div key={hi}>
-                <div className="bg-blue-50 px-4 py-1 text-xs font-mono text-blue-600 border-b border-blue-100 sticky top-0 z-10">
+                <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-1 text-xs font-mono text-blue-600 dark:text-blue-400 border-b border-blue-100 dark:border-blue-800 sticky top-0 z-10">
                   {hunk.header}
                 </div>
                 {hunk.lines.map((line, li) => {
@@ -152,18 +151,18 @@ export default function GitTab({ projectId }: { projectId: string }) {
                   return (
                     <div
                       key={li}
-                      className={`flex font-mono text-xs leading-5 ${isAdd ? 'bg-green-50' : isRemove ? 'bg-red-50' : 'bg-white'}`}
+                      className={`flex font-mono text-xs leading-5 ${isAdd ? 'bg-green-50 dark:bg-green-900/20' : isRemove ? 'bg-red-50 dark:bg-red-900/20' : 'bg-white dark:bg-gray-800'}`}
                     >
-                      <span className={`w-10 shrink-0 text-right pr-2 select-none sticky left-0 z-[5] ${isRemove ? 'text-red-300 bg-red-50' : isAdd ? 'text-gray-300 bg-green-50' : 'text-gray-300 bg-white'} border-r border-gray-200`}>
+                      <span className={`w-10 shrink-0 text-right pr-2 select-none sticky left-0 z-[5] ${isRemove ? 'text-red-300 dark:text-red-600 bg-red-50 dark:bg-red-900/20' : isAdd ? 'text-gray-300 dark:text-gray-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
                         {line.oldLine ?? ''}
                       </span>
-                      <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300' : isRemove ? 'text-red-300' : 'text-gray-300'} border-r border-gray-200`}>
+                      <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300 dark:text-green-600' : isRemove ? 'text-red-300 dark:text-red-600' : 'text-gray-300 dark:text-gray-600'} border-r border-gray-200 dark:border-gray-700`}>
                         {line.newLine ?? ''}
                       </span>
-                      <span className={`w-5 shrink-0 text-center select-none ${isAdd ? 'text-green-400' : isRemove ? 'text-red-400' : 'text-gray-300'}`}>
+                      <span className={`w-5 shrink-0 text-center select-none ${isAdd ? 'text-green-400 dark:text-green-500' : isRemove ? 'text-red-400 dark:text-red-500' : 'text-gray-300 dark:text-gray-600'}`}>
                         {isAdd ? '+' : isRemove ? '-' : ' '}
                       </span>
-                      <pre className={`whitespace-pre px-1 ${isAdd ? 'text-green-800' : isRemove ? 'text-red-800' : 'text-gray-700'}`}>
+                      <pre className={`whitespace-pre px-1 ${isAdd ? 'text-green-800 dark:text-green-300' : isRemove ? 'text-red-800 dark:text-red-300' : 'text-gray-700 dark:text-gray-300'}`}>
                         {line.content}
                       </pre>
                     </div>
@@ -179,36 +178,34 @@ export default function GitTab({ projectId }: { projectId: string }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      {/* Header */}
-      <header className="bg-white px-4 py-3 border-b border-gray-200 shrink-0 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Git 变更</h2>
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Git 变更</h2>
         {data?.branch && (
-          <div className="flex items-center gap-2 bg-gray-100 px-2.5 py-1 rounded-md">
-            <GitBranch className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">{data.branch}</span>
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-md">
+            <GitBranch className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{data.branch}</span>
           </div>
         )}
       </header>
 
       {loading ? (
-        <div className="text-center py-10 text-gray-400">加载中...</div>
+        <div className="text-center py-10 text-gray-400 dark:text-gray-500">加载中...</div>
       ) : (
         <div className="flex-1 overflow-y-auto">
-          {/* Staged Changes */}
           {data?.staged && data.staged.length > 0 && (
             <div className="mb-4">
-              <div className="px-4 py-2 flex items-center justify-between bg-gray-50 sticky top-0 z-10">
-                <h3 className="text-xs font-semibold text-green-600 uppercase tracking-wider">已暂存的变更 ({data.staged.length})</h3>
+              <div className="px-4 py-2 flex items-center justify-between bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
+                <h3 className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider">已暂存的变更 ({data.staged.length})</h3>
                 <button
                   onClick={unstageAll}
                   disabled={actionLoading === 'unstage-all'}
-                  className="text-xs text-gray-500 hover:text-gray-900 disabled:opacity-50"
+                  className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-50"
                 >
                   全部取消
                 </button>
               </div>
-              <div className="bg-white border-y border-gray-200 divide-y divide-gray-100">
+              <div className="bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
                 {data.staged.map((item: any, i: number) => (
                   <div key={i} className="flex items-center gap-2 px-4 py-2.5">
                     <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0 border ${statusColor(item.status)}`}>{item.status}</span>
@@ -216,12 +213,12 @@ export default function GitTab({ projectId }: { projectId: string }) {
                       onClick={() => viewDiff(item.filePath, 'staged')}
                       className="flex-1 min-w-0 text-left"
                     >
-                      <div className="text-sm text-gray-900 truncate hover:text-blue-600">{item.filePath}</div>
+                      <div className="text-sm text-gray-900 dark:text-gray-100 truncate hover:text-blue-600 dark:hover:text-blue-400">{item.filePath}</div>
                     </button>
                     <button
                       onClick={() => unstageFile(item.filePath)}
                       disabled={actionLoading === `unstage-${item.filePath}`}
-                      className="p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-md disabled:opacity-50 shrink-0"
+                      className="p-1.5 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 dark:hover:text-red-400 rounded-md disabled:opacity-50 shrink-0"
                       title="取消暂存"
                     >
                       <Minus className="w-4 h-4" />
@@ -232,33 +229,32 @@ export default function GitTab({ projectId }: { projectId: string }) {
             </div>
           )}
 
-          {/* Unstaged Changes */}
           {data?.unstaged && data.unstaged.length > 0 && (
             <div className="mb-4">
-              <div className="px-4 py-2 flex items-center justify-between bg-gray-50 sticky top-0 z-10">
-                <h3 className="text-xs font-semibold text-orange-600 uppercase tracking-wider">未暂存的变更 ({data.unstaged.length})</h3>
+              <div className="px-4 py-2 flex items-center justify-between bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
+                <h3 className="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wider">未暂存的变更 ({data.unstaged.length})</h3>
                 <button
                   onClick={stageAll}
                   disabled={actionLoading === 'stage-all'}
-                  className="text-xs text-gray-500 hover:text-gray-900 disabled:opacity-50"
+                  className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-50"
                 >
                   全部暂存
                 </button>
               </div>
-              <div className="bg-white border-y border-gray-200 divide-y divide-gray-100">
+              <div className="bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
                 {data.unstaged.map((item: any, i: number) => (
                   <div key={i} className="flex items-center gap-2 px-4 py-2.5">
                     <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0 border ${statusColor(item.status)}`}>{item.status}</span>
                     <button
                       onClick={() => item.status !== 'U' ? viewDiff(item.filePath, 'unstaged') : undefined}
-                      className={`flex-1 min-w-0 text-left ${item.status !== 'U' ? 'hover:text-blue-600' : ''}`}
+                      className={`flex-1 min-w-0 text-left ${item.status !== 'U' ? 'hover:text-blue-600 dark:hover:text-blue-400' : ''}`}
                     >
-                      <div className="text-sm text-gray-900 truncate">{item.filePath}</div>
+                      <div className="text-sm text-gray-900 dark:text-gray-100 truncate">{item.filePath}</div>
                     </button>
                     <button
                       onClick={() => stageFile(item.filePath)}
                       disabled={actionLoading === `stage-${item.filePath}`}
-                      className="p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-500 rounded-md disabled:opacity-50 shrink-0"
+                      className="p-1.5 text-gray-400 dark:text-gray-500 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-500 dark:hover:text-green-400 rounded-md disabled:opacity-50 shrink-0"
                       title="暂存"
                     >
                       <Plus className="w-4 h-4" />
@@ -270,18 +266,17 @@ export default function GitTab({ projectId }: { projectId: string }) {
           )}
 
           {!loading && data?.staged?.length === 0 && data?.unstaged?.length === 0 && (
-            <div className="text-center py-10 text-gray-400">工作区干净，没有变更</div>
+            <div className="text-center py-10 text-gray-400 dark:text-gray-500">工作区干净，没有变更</div>
           )}
         </div>
       )}
 
-      {/* Commit Area */}
-      <div className="bg-white border-t border-gray-200 p-4 shrink-0">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 shrink-0">
         <textarea
           placeholder="输入提交信息..."
           value={commitMsg}
           onChange={e => setCommitMsg(e.target.value)}
-          className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+          className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-800 focus:border-transparent mb-3"
           rows={3}
         />
         <button

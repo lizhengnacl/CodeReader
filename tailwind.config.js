@@ -4,6 +4,7 @@ export default {
     './index.html',
     './codebase/src/**/*.{js,ts,jsx,tsx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {},
   },

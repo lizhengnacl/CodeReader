@@ -29,8 +29,7 @@ export default function Workspace() {
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Content Area */}
+    <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col">
       <div className="flex-1 overflow-hidden flex flex-col">
         {tab === 'files' && <FilesTab projectId={projectId || ''} project={project} />}
         {tab === 'search' && <SearchTab projectId={projectId || ''} />}
@@ -38,8 +37,7 @@ export default function Workspace() {
         {tab === 'settings' && <SettingsTab />}
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="bg-white border-t border-gray-200 pb-safe">
+      <nav className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 pb-safe">
         <div className="flex items-center justify-around h-14">
           {tabs.map(t => {
             const Icon = t.icon;
@@ -50,10 +48,10 @@ export default function Workspace() {
                 onClick={() => navigate(`/workspace/${projectId}?tab=${t.id}`)}
                 className={cn(
                   "flex flex-col items-center justify-center w-full h-full space-y-1",
-                  isActive ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
+                  isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                 )}
               >
-                <Icon className={cn("w-5 h-5", isActive && "fill-blue-50")} />
+                <Icon className={cn("w-5 h-5", isActive && "fill-blue-50 dark:fill-blue-900/30")} />
                 <span className="text-[10px] font-medium">{t.label}</span>
               </button>
             );
