@@ -1,6 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, MoreVertical, Edit3, List, Search, Settings2 } from 'lucide-react';
+import hljs from 'highlight.js';
+
+const EXT_LANG_MAP: Record<string, string> = {
+  '.ts': 'typescript', '.tsx': 'typescript',
+  '.js': 'javascript', '.jsx': 'javascript',
+  '.css': 'css', '.scss': 'scss', '.less': 'less',
+  '.html': 'xml', '.xml': 'xml', '.svg': 'xml',
+  '.json': 'json', '.yaml': 'yaml', '.yml': 'yaml', '.toml': 'ini',
+  '.md': 'markdown', '.py': 'python', '.go': 'go',
+  '.rs': 'rust', '.java': 'java', '.sh': 'bash', '.sql': 'sql',
+  '.c': 'c', '.cpp': 'cpp', '.h': 'c', '.hpp': 'cpp',
+  '.rb': 'ruby', '.php': 'php', '.swift': 'swift',
+  '.kt': 'kotlin', '.scala': 'scala', '.r': 'r',
+  '.lua': 'lua', '.dart': 'dart', '.vue': 'xml',
+  '.svelte': 'xml', '.graphql': 'graphql',
+  '.tf': 'hcl', '.hcl': 'hcl',
+  '.dockerfile': 'dockerfile',
+  '.gitignore': 'plaintext', '.env': 'ini',
+};
+
+function detectLang(fileName: string): string {
+  const lower = fileName.toLowerCase();
+  if (lower === 'dockerfile') return 'dockerfile';
+  if (lower === 'makefile') return 'makefile';
+  if (lower.endsWith('.gitignore')) return 'plaintext';
+  const ext = '.' + lower.split('.').pop();
+  return EXT_LANG_MAP[ext] || 'plaintext';
+}
+
+function highlightCode(code: string, lang: string): string {
+  try {
+    if (lang === 'plaintext') return escapeHtml(code);
+    const result = hljs.highlight(code, { language: lang, ignoreIllegals: true });
+    return result.value;
+  } catch {
+    return escapeHtml(code);
+  }
+}
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 export default function CodeViewer() {
   const navigate = useNavigate();
@@ -31,6 +73,10 @@ export default function CodeViewer() {
       });
   }, [fileName, projectId]);
 
+  const lang = useMemo(() => detectLang(displayFileName), [displayFileName]);
+  const highlighted = useMemo(() => highlightCode(code, lang), [code, lang]);
+  const lines = useMemo(() => highlighted.split('\n'), [highlighted]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col">
       <header className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 shrink-0 sticky top-0 z-10">
@@ -38,7 +84,10 @@ export default function CodeViewer() {
           <button onClick={() => navigate(-1)} className="p-1 -ml-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h2 className="text-base font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px]">{displayFileName}</h2>
+          <div>
+            <h2 className="text-base font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px]">{displayFileName}</h2>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">{lang}</span>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <button className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
@@ -58,15 +107,15 @@ export default function CodeViewer() {
         ) : (
           <div className="flex min-w-max">
             <div className="w-12 shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 py-4 text-right pr-3 select-none">
-              {code.split('\n').map((_, i) => (
+              {lines.map((_, i) => (
                 <div key={i} className="text-xs text-gray-400 dark:text-gray-600 font-mono leading-6 h-6">{i + 1}</div>
               ))}
             </div>
             <div className="flex-1 py-4 px-4">
-              <pre className="text-sm font-mono leading-6 text-gray-800 dark:text-gray-200 m-0">
-                <code>
-                  {code.split('\n').map((line, i) => (
-                    <div key={i} className="h-6 whitespace-pre">{line || ' '}</div>
+              <pre className="text-sm font-mono leading-6 m-0">
+                <code className={`hljs language-${lang}`}>
+                  {lines.map((line, i) => (
+                    <div key={i} className="h-6 whitespace-pre" dangerouslySetInnerHTML={{ __html: line || ' ' }} />
                   ))}
                 </code>
               </pre>

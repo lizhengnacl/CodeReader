@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from '../codebase/src/App';
+import 'highlight.js/styles/github.css';
+import 'highlight.js/styles/github-dark.css';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

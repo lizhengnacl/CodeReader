@@ -13,6 +13,50 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.dark .hljs {
+  color: #c9d1d9;
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-type {
+  color: #ff7b72;
+}
+
+.dark .hljs-string,
+.dark .hljs-addition {
+  color: #a5d6ff;
+}
+
+.dark .hljs-number,
+.dark .hljs-literal {
+  color: #79c0ff;
+}
+
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: #8b949e;
+}
+
+.dark .hljs-function .hljs-title,
+.dark .hljs-title.function_ {
+  color: #d2a8ff;
+}
+
+.dark .hljs-variable,
+.dark .hljs-attr {
+  color: #ffa657;
+}
+
+.dark .hljs-built_in {
+  color: #ffa657;
+}
+
 @keyframes slide-up {
   from {
     transform: translateY(100%);
