@@ -4,6 +4,8 @@ import { GitBranch, Plus, Minus, Check, ChevronLeft, FileText } from 'lucide-rea
 interface DiffLine {
   type: 'add' | 'remove' | 'context';
   content: string;
+  oldLine: number | null;
+  newLine: number | null;
 }
 
 interface DiffHunk {
@@ -151,7 +153,13 @@ export default function GitTab({ projectId }: { projectId: string }) {
                       key={li}
                       className={`flex font-mono text-xs leading-5 ${isAdd ? 'bg-green-50' : isRemove ? 'bg-red-50' : 'bg-white'}`}
                     >
-                      <span className={`w-8 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-400' : isRemove ? 'text-red-400' : 'text-gray-300'}`}>
+                      <span className={`w-10 shrink-0 text-right pr-2 select-none border-r ${isRemove ? 'text-red-300 border-red-200' : 'text-gray-300 border-gray-200'}`}>
+                        {line.oldLine ?? ''}
+                      </span>
+                      <span className={`w-10 shrink-0 text-right pr-2 select-none border-r ${isAdd ? 'text-green-300 border-green-200' : 'text-gray-300 border-gray-200'}`}>
+                        {line.newLine ?? ''}
+                      </span>
+                      <span className={`w-5 shrink-0 text-center select-none ${isAdd ? 'text-green-400' : isRemove ? 'text-red-400' : 'text-gray-300'}`}>
                         {isAdd ? '+' : isRemove ? '-' : ' '}
                       </span>
                       <pre className={`flex-1 whitespace-pre overflow-x-auto px-1 ${isAdd ? 'text-green-800' : isRemove ? 'text-red-800' : 'text-gray-700'}`}>
