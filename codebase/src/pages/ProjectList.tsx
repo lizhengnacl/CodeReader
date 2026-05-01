@@ -94,7 +94,10 @@ export default function ProjectList() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <FolderGit2 className="text-white w-5 h-5" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">CodeReader</h1>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight">CodeReader</h1>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500">掌上代码，触手可及</p>
+          </div>
         </div>
         <button onClick={toggleTheme} className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors" title={theme === 'dark' ? '切换浅色模式' : '切换深色模式'}>
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
