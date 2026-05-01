@@ -22,6 +22,31 @@
 - 📱 **移动端优先** — 触控友好，局域网二维码扫描访问
 - 🖥️ **目录选择器** — 浏览本地目录添加项目，名称自动填充
 
+## 截图
+
+<table>
+  <tr>
+    <td align="center">项目列表</td>
+    <td align="center">文件浏览</td>
+    <td align="center">代码查看</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/project-list.png" width="250" /></td>
+    <td><img src="screenshots/files-tab.png" width="250" /></td>
+    <td><img src="screenshots/code-viewer.png" width="250" /></td>
+  </tr>
+  <tr>
+    <td align="center">全局搜索</td>
+    <td align="center">Git 变更</td>
+    <td align="center">设置</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/search-tab.png" width="250" /></td>
+    <td><img src="screenshots/git-tab.png" width="250" /></td>
+    <td><img src="screenshots/settings-tab.png" width="250" /></td>
+  </tr>
+</table>
+
 ## 快速开始
 
 ### 环境要求
