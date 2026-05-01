@@ -140,9 +140,10 @@ export default function GitTab({ projectId }: { projectId: string }) {
           ) : diffData.hunks.length === 0 ? (
             <div className="text-center py-10 text-gray-400">无变更内容</div>
           ) : (
-            diffData.hunks.map((hunk, hi) => (
+            <div className="min-w-max">
+            {diffData.hunks.map((hunk, hi) => (
               <div key={hi}>
-                <div className="bg-blue-50 px-4 py-1 text-xs font-mono text-blue-600 border-b border-blue-100 sticky top-0">
+                <div className="bg-blue-50 px-4 py-1 text-xs font-mono text-blue-600 border-b border-blue-100 sticky top-0 z-10">
                   {hunk.header}
                 </div>
                 {hunk.lines.map((line, li) => {
@@ -153,23 +154,24 @@ export default function GitTab({ projectId }: { projectId: string }) {
                       key={li}
                       className={`flex font-mono text-xs leading-5 ${isAdd ? 'bg-green-50' : isRemove ? 'bg-red-50' : 'bg-white'}`}
                     >
-                      <span className={`w-10 shrink-0 text-right pr-2 select-none border-r ${isRemove ? 'text-red-300 border-red-200' : 'text-gray-300 border-gray-200'}`}>
+                      <span className={`w-10 shrink-0 text-right pr-2 select-none sticky left-0 z-[5] ${isRemove ? 'text-red-300 bg-red-50' : isAdd ? 'text-gray-300 bg-green-50' : 'text-gray-300 bg-white'} border-r border-gray-200`}>
                         {line.oldLine ?? ''}
                       </span>
-                      <span className={`w-10 shrink-0 text-right pr-2 select-none border-r ${isAdd ? 'text-green-300 border-green-200' : 'text-gray-300 border-gray-200'}`}>
+                      <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300' : isRemove ? 'text-red-300' : 'text-gray-300'} border-r border-gray-200`}>
                         {line.newLine ?? ''}
                       </span>
                       <span className={`w-5 shrink-0 text-center select-none ${isAdd ? 'text-green-400' : isRemove ? 'text-red-400' : 'text-gray-300'}`}>
                         {isAdd ? '+' : isRemove ? '-' : ' '}
                       </span>
-                      <pre className={`flex-1 whitespace-pre overflow-x-auto px-1 ${isAdd ? 'text-green-800' : isRemove ? 'text-red-800' : 'text-gray-700'}`}>
+                      <pre className={`whitespace-pre px-1 ${isAdd ? 'text-green-800' : isRemove ? 'text-red-800' : 'text-gray-700'}`}>
                         {line.content}
                       </pre>
                     </div>
                   );
                 })}
               </div>
-            ))
+            ))}
+            </div>
           )}
         </div>
       </div>
