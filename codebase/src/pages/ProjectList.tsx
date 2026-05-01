@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Settings, Plus, FolderGit2, ChevronRight } from 'lucide-react';
+import { Search, Settings, Plus, FolderGit2, ChevronRight, X } from 'lucide-react';
+import DirBrowser from '../components/DirBrowser';
 
 export default function ProjectList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formPath, setFormPath] = useState('');
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const nameManuallyEdited = useRef(false);
 
-  useEffect(() => {
+  const loadProjects = () => {
     fetch('/api/projects')
       .then(res => res.json())
       .then(data => {
@@ -16,9 +23,67 @@ export default function ProjectList() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProjects();
   }, []);
 
   const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const handlePathSelect = (selectedPath: string) => {
+    setFormPath(selectedPath);
+    if (!nameManuallyEdited.current) {
+      const dirName = selectedPath.split('/').filter(Boolean).pop() || '';
+      setFormName(dirName);
+    }
+  };
+
+  const handleNameChange = (value: string) => {
+    setFormName(value);
+    nameManuallyEdited.current = true;
+  };
+
+  const handleOpenModal = () => {
+    nameManuallyEdited.current = false;
+    setFormName('');
+    setFormPath('');
+    setFormError('');
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    nameManuallyEdited.current = false;
+  };
+
+  const handleAdd = () => {
+    if (!formName.trim() || !formPath.trim()) {
+      setFormError('名称和路径不能为空');
+      return;
+    }
+    setSubmitting(true);
+    setFormError('');
+    fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: formName.trim(), path: formPath.trim() }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        setSubmitting(false);
+        if (data.error) {
+          setFormError(data.error);
+        } else {
+          handleCloseModal();
+          loadProjects();
+        }
+      })
+      .catch(() => {
+        setSubmitting(false);
+        setFormError('添加失败');
+      });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -66,7 +131,6 @@ export default function ProjectList() {
               <h3 className="text-lg font-semibold text-gray-900 mb-1">{project.name}</h3>
               <p className="text-sm text-gray-500 mb-3 truncate">{project.path}</p>
               
-              {/* Language Bar */}
               {project.languages && project.languages.length > 0 && (
                 <div className="h-1.5 w-full rounded-full overflow-hidden flex mb-3">
                   {project.languages.map(lang => (
@@ -93,9 +157,69 @@ export default function ProjectList() {
       </div>
 
       {/* FAB */}
-      <button className="fixed right-6 bottom-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all">
+      <button
+        onClick={handleOpenModal}
+        className="fixed right-6 bottom-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all z-20"
+      >
         <Plus className="w-6 h-6" />
       </button>
+
+      {/* Add Project Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={handleCloseModal}>
+          <div
+            className="bg-white w-full max-w-lg rounded-t-2xl p-6 pb-safe animate-slide-up max-h-[90vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <h2 className="text-lg font-semibold text-gray-900">添加项目</h2>
+              <button onClick={handleCloseModal} className="p-1 text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 overflow-y-auto flex-1">
+              {/* Directory Browser */}
+              <DirBrowser onSelect={handlePathSelect} selectedPath={formPath} />
+
+              {/* Project Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">项目名称</label>
+                <input
+                  type="text"
+                  placeholder="选择目录后自动填充"
+                  value={formName}
+                  onChange={e => handleNameChange(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none text-sm"
+                />
+              </div>
+
+              {/* Selected Path Display */}
+              {formPath && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg">
+                  <FolderGit2 className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span className="text-xs font-mono text-blue-700 truncate">{formPath}</span>
+                </div>
+              )}
+
+              {formError && (
+                <p className="text-sm text-red-500">{formError}</p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-4 shrink-0">
+              <button
+                onClick={handleAdd}
+                disabled={submitting || !formPath}
+                className="w-full bg-blue-600 text-white rounded-xl py-3 text-sm font-medium hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? '添加中...' : '添加项目'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -130,6 +130,30 @@ export function getProjectById(id) {
   return projects.find(p => p.id === id) || null;
 }
 
+export function addProject(name, projPath) {
+  const resolvedPath = path.resolve(projPath);
+  if (!fs.existsSync(resolvedPath)) {
+    return { error: '路径不存在' };
+  }
+  const exists = config.projects.some(
+    p => path.resolve(__dirname, '..', p.path) === resolvedPath
+  );
+  if (exists) {
+    return { error: '该项目已存在' };
+  }
+  config.projects.push({ name, path: path.relative(path.join(__dirname, '..'), resolvedPath) || '.' });
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
+  return { success: true };
+}
+
+export function removeProject(id) {
+  const idx = parseInt(id, 10) - 1;
+  if (idx < 0 || idx >= config.projects.length) return { error: '项目不存在' };
+  config.projects.splice(idx, 1);
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
+  return { success: true };
+}
+
 export function getProjectPath(id) {
   const idx = parseInt(id, 10) - 1;
   if (idx < 0 || idx >= config.projects.length) return null;

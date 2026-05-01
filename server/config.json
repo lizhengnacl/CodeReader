@@ -3,6 +3,10 @@
     {
       "name": "CodeReader",
       "path": "."
+    },
+    {
+      "name": "AgentPilot",
+      "path": "../AgentPilot"
     }
   ]
 }
