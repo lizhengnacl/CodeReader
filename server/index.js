@@ -1,13 +1,17 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { getProjects, getProjectById, addProject, removeProject } from './projects.js';
 import { listFiles, getFileContent } from './files.js';
 import { search } from './search.js';
 import { gitStatus, gitDiff, gitStage, gitUnstage, gitCommit } from './git.js';
 import { browseDirs } from './browse.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
+const PRODUCTION = process.env.NODE_ENV === 'production';
 
 app.use(cors());
 app.use(express.json());
@@ -47,6 +51,18 @@ app.delete('/api/projects/:projectId', (req, res) => {
   res.json(result);
 });
 
+if (PRODUCTION) {
+  const distPath = path.join(__dirname, '..', 'dist');
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`CodeReader API server running at http://localhost:${PORT}`);
+  if (PRODUCTION) {
+    console.log(`CodeReader running at http://localhost:${PORT} (production)`);
+  } else {
+    console.log(`CodeReader API server running at http://localhost:${PORT}`);
+  }
 });
