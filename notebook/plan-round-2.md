@@ -1,0 +1,5 @@
+- Create individual tab components for Workspace (Files, Search, Git, Settings)
+- Create CodeViewer page for viewing file content
+- Update Workspace.tsx to render the tab components
+- Update App.tsx to include CodeViewer route
+- Update prototype-route.json to include the new states

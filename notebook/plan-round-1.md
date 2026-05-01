@@ -1,0 +1,5 @@
+- Setup React Router in App.tsx
+- Create Project List page
+- Create Workspace layout with bottom tabs
+- Implement basic Files Tab UI
+- Update dependencies

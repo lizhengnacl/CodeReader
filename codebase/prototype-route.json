@@ -1,0 +1,33 @@
+{
+  "state_name": "Project List",
+  "state_url": "/projects",
+  "children": [
+    {
+      "interaction": "Click on a project",
+      "state_name": "Workspace - Files Tab",
+      "state_url": "/workspace/1?tab=files",
+      "children": [
+        {
+          "interaction": "Click on a file",
+          "state_name": "Code Viewer",
+          "state_url": "/workspace/1/code?file=Button.tsx"
+        },
+        {
+          "interaction": "Switch to Search Tab",
+          "state_name": "Workspace - Search Tab",
+          "state_url": "/workspace/1?tab=search"
+        },
+        {
+          "interaction": "Switch to Git Tab",
+          "state_name": "Workspace - Git Tab",
+          "state_url": "/workspace/1?tab=git"
+        },
+        {
+          "interaction": "Switch to Settings Tab",
+          "state_name": "Workspace - Settings Tab",
+          "state_url": "/workspace/1?tab=settings"
+        }
+      ]
+    }
+  ]
+}
