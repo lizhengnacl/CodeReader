@@ -3,7 +3,7 @@ import cors from 'cors';
 import { getProjects, getProjectById, addProject, removeProject } from './projects.js';
 import { listFiles, getFileContent } from './files.js';
 import { search } from './search.js';
-import { gitStatus } from './git.js';
+import { gitStatus, gitDiff, gitStage, gitUnstage, gitCommit } from './git.js';
 import { browseDirs } from './browse.js';
 
 const app = express();
@@ -27,6 +27,10 @@ app.get('/api/projects/:projectId/files', listFiles);
 app.get('/api/projects/:projectId/code', getFileContent);
 app.get('/api/projects/:projectId/search', search);
 app.get('/api/projects/:projectId/git/status', gitStatus);
+app.get('/api/projects/:projectId/git/diff', gitDiff);
+app.post('/api/projects/:projectId/git/stage', gitStage);
+app.post('/api/projects/:projectId/git/unstage', gitUnstage);
+app.post('/api/projects/:projectId/git/commit', gitCommit);
 app.get('/api/browse', browseDirs);
 
 app.post('/api/projects', (req, res) => {

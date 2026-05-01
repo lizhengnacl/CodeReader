@@ -30,13 +30,7 @@ export function gitStatus(req, res) {
         const filePath = line.slice(3);
 
         const statusMap = {
-          'M': 'M',
-          'A': 'A',
-          'D': 'D',
-          'R': 'R',
-          'C': 'C',
-          '?': 'U',
-          '!': 'I',
+          'M': 'M', 'A': 'A', 'D': 'D', 'R': 'R', 'C': 'C', '?': 'U', '!': 'I',
         };
 
         if (indexStatus !== ' ' && indexStatus !== '?') {
@@ -59,4 +53,132 @@ export function gitStatus(req, res) {
   } catch (err) {
     res.status(500).json({ error: '获取 Git 状态失败', detail: err.message });
   }
+}
+
+export function gitDiff(req, res) {
+  const { projectId } = req.params;
+  const filePath = req.query.file || '';
+  const type = req.query.type || 'unstaged';
+  const projectRoot = getProjectPath(projectId);
+
+  if (!projectRoot) {
+    return res.status(404).json({ error: '项目不存在' });
+  }
+
+  try {
+    let diffOutput;
+    if (type === 'staged') {
+      diffOutput = execSync(
+        `git diff --cached -- ${escapeShellArg(filePath)}`,
+        { cwd: projectRoot, encoding: 'utf-8', maxBuffer: 5 * 1024 * 1024 }
+      );
+    } else {
+      diffOutput = execSync(
+        `git diff -- ${escapeShellArg(filePath)}`,
+        { cwd: projectRoot, encoding: 'utf-8', maxBuffer: 5 * 1024 * 1024 }
+      );
+    }
+
+    const hunks = parseDiff(diffOutput);
+    res.json({ filePath, type, hunks, raw: diffOutput });
+  } catch (err) {
+    res.status(500).json({ error: '获取 diff 失败', detail: err.message });
+  }
+}
+
+export function gitStage(req, res) {
+  const { projectId } = req.params;
+  const { filePath, all } = req.body;
+  const projectRoot = getProjectPath(projectId);
+
+  if (!projectRoot) {
+    return res.status(404).json({ error: '项目不存在' });
+  }
+
+  try {
+    if (all) {
+      execSync('git add -A', { cwd: projectRoot, encoding: 'utf-8' });
+    } else if (filePath) {
+      execSync(`git add -- ${escapeShellArg(filePath)}`, { cwd: projectRoot, encoding: 'utf-8' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: '暂存失败', detail: err.message });
+  }
+}
+
+export function gitUnstage(req, res) {
+  const { projectId } = req.params;
+  const { filePath, all } = req.body;
+  const projectRoot = getProjectPath(projectId);
+
+  if (!projectRoot) {
+    return res.status(404).json({ error: '项目不存在' });
+  }
+
+  try {
+    if (all) {
+      execSync('git reset HEAD', { cwd: projectRoot, encoding: 'utf-8' });
+    } else if (filePath) {
+      execSync(`git reset HEAD -- ${escapeShellArg(filePath)}`, { cwd: projectRoot, encoding: 'utf-8' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: '取消暂存失败', detail: err.message });
+  }
+}
+
+export function gitCommit(req, res) {
+  const { projectId } = req.params;
+  const { message } = req.body;
+  const projectRoot = getProjectPath(projectId);
+
+  if (!projectRoot) {
+    return res.status(404).json({ error: '项目不存在' });
+  }
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ error: '提交信息不能为空' });
+  }
+
+  try {
+    const output = execSync(
+      `git commit -m ${escapeShellArg(message.trim())}`,
+      { cwd: projectRoot, encoding: 'utf-8' }
+    );
+    res.json({ success: true, output: output.trim() });
+  } catch (err) {
+    res.status(500).json({ error: '提交失败', detail: err.message });
+  }
+}
+
+function escapeShellArg(str) {
+  return `'${str.replace(/'/g, "'\\''")}'`;
+}
+
+function parseDiff(diffText) {
+  if (!diffText.trim()) return [];
+
+  const lines = diffText.split('\n');
+  const hunks = [];
+  let currentHunk = null;
+
+  for (const line of lines) {
+    if (line.startsWith('@@')) {
+      if (currentHunk) hunks.push(currentHunk);
+      const match = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+      currentHunk = {
+        header: line,
+        oldStart: match ? parseInt(match[1]) : 0,
+        newStart: match ? parseInt(match[2]) : 0,
+        lines: [],
+      };
+    } else if (currentHunk) {
+      const type = line.startsWith('+') ? 'add' : line.startsWith('-') ? 'remove' : 'context';
+      currentHunk.lines.push({ type, content: line.slice(1) || ' ' });
+    }
+  }
+  if (currentHunk) hunks.push(currentHunk);
+
+  return hunks;
 }
