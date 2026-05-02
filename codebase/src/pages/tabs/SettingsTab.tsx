@@ -1,10 +1,20 @@
-import React from 'react';
-import { Settings, Moon, Type, Eye, Info, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Moon, Type, Eye, Info, ChevronRight, Minus, Plus, Check, X } from 'lucide-react';
 import { useTheme } from '../../lib/ThemeContext';
+import { useSettings } from '../../lib/SettingsContext';
+
+const FONT_SIZES = [10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24];
+const DIFF_VIEWS = [
+  { value: 'unified' as const, label: 'Unified', desc: '合并视图，新旧代码交替显示' },
+  { value: 'split' as const, label: 'Split', desc: '分栏视图，左右对比显示' },
+];
 
 export default function SettingsTab() {
   const { theme, toggleTheme } = useTheme();
+  const { fontSize, setFontSize, diffView, setDiffView } = useSettings();
   const isDark = theme === 'dark';
+  const [showFontPicker, setShowFontPicker] = useState(false);
+  const [showDiffPicker, setShowDiffPicker] = useState(false);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
@@ -26,23 +36,25 @@ export default function SettingsTab() {
                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDark ? 'translate-x-5' : 'translate-x-1'}`}></div>
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 active:bg-gray-50 dark:active:bg-gray-700">
+
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 active:bg-gray-50 dark:active:bg-gray-700" onClick={() => setShowFontPicker(true)}>
               <div className="flex items-center gap-3">
                 <Type className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <span className="text-sm text-gray-900 dark:text-gray-100">字体大小</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <span>14px</span>
+                <span>{fontSize}px</span>
                 <ChevronRight className="w-4 h-4" />
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 active:bg-gray-50 dark:active:bg-gray-700">
+
+            <div className="flex items-center justify-between p-4 active:bg-gray-50 dark:active:bg-gray-700" onClick={() => setShowDiffPicker(true)}>
               <div className="flex items-center gap-3">
                 <Eye className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <span className="text-sm text-gray-900 dark:text-gray-100">默认 Diff 视图</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <span>Unified</span>
+                <span>{DIFF_VIEWS.find(v => v.value === diffView)?.label}</span>
                 <ChevronRight className="w-4 h-4" />
               </div>
             </div>
@@ -73,6 +85,98 @@ export default function SettingsTab() {
         </div>
 
       </div>
+
+      {showFontPicker && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowFontPicker(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-lg p-5 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">字体大小</h3>
+              <button onClick={() => setShowFontPicker(false)} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-4 mb-5">
+              <button
+                onClick={() => setFontSize(Math.max(10, fontSize - 1))}
+                disabled={fontSize <= 10}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-30 active:scale-95 transition-all"
+              >
+                <Minus className="w-5 h-5" />
+              </button>
+              <div className="text-center min-w-[80px]">
+                <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{fontSize}</div>
+                <div className="text-xs text-gray-400 dark:text-gray-500">px</div>
+              </div>
+              <button
+                onClick={() => setFontSize(Math.min(24, fontSize + 1))}
+                disabled={fontSize >= 24}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-30 active:scale-95 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-5 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+              <pre className="font-mono text-gray-700 dark:text-gray-300 overflow-x-auto" style={{ fontSize: `${fontSize}px`, lineHeight: 1.6 }}>
+{`function hello() {
+  console.log("Hello!");
+  return 42;
+}`}
+              </pre>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {FONT_SIZES.map(s => (
+                <button
+                  key={s}
+                  onClick={() => setFontSize(s)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    fontSize === s
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 active:scale-95'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDiffPicker && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowDiffPicker(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-lg p-5 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">默认 Diff 视图</h3>
+              <button onClick={() => setShowDiffPicker(false)} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {DIFF_VIEWS.map(v => (
+                <button
+                  key={v.value}
+                  onClick={() => { setDiffView(v.value); setShowDiffPicker(false); }}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                    diffView === v.value
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 active:scale-[0.98]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm font-medium ${diffView === v.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>{v.label}</span>
+                    {diffView === v.value && <Check className="w-5 h-5 text-blue-500" />}
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">{v.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

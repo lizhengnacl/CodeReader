@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, MoreVertical, Edit3, List, Search, Settings2 } from 'lucide-react';
 import hljs from 'highlight.js';
+import { useSettings } from '../lib/SettingsContext';
 
 const EXT_LANG_MAP: Record<string, string> = {
   '.ts': 'typescript', '.tsx': 'typescript',
@@ -47,6 +48,7 @@ function escapeHtml(str: string): string {
 export default function CodeViewer() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { fontSize } = useSettings();
   const fileName = searchParams.get('file') || '';
   const displayFileName = fileName.split('/').pop() || 'Unknown';
   const [code, setCode] = useState('');
@@ -76,6 +78,8 @@ export default function CodeViewer() {
   const lang = useMemo(() => detectLang(displayFileName), [displayFileName]);
   const highlighted = useMemo(() => highlightCode(code, lang), [code, lang]);
   const lines = useMemo(() => highlighted.split('\n'), [highlighted]);
+
+  const lineHeight = Math.round(fontSize * 1.5);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col">
@@ -108,14 +112,14 @@ export default function CodeViewer() {
           <div className="flex min-w-max">
             <div className="w-12 shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 py-4 text-right pr-3 select-none">
               {lines.map((_, i) => (
-                <div key={i} className="text-xs text-gray-400 dark:text-gray-600 font-mono leading-6 h-6">{i + 1}</div>
+                <div key={i} className="text-gray-400 dark:text-gray-600 font-mono" style={{ fontSize: `${fontSize}px`, height: `${lineHeight}px`, lineHeight: `${lineHeight}px` }}>{i + 1}</div>
               ))}
             </div>
             <div className="flex-1 py-4 px-4">
-              <pre className="text-sm font-mono leading-6 m-0">
+              <pre className="font-mono m-0" style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px` }}>
                 <code className={`hljs language-${lang}`}>
                   {lines.map((line, i) => (
-                    <div key={i} className="h-6 whitespace-pre" dangerouslySetInnerHTML={{ __html: line || ' ' }} />
+                    <div key={i} className="whitespace-pre" style={{ height: `${lineHeight}px` }} dangerouslySetInnerHTML={{ __html: line || ' ' }} />
                   ))}
                 </code>
               </pre>

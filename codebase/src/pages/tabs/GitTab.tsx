@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GitBranch, Plus, Minus, Check, ChevronLeft, FileText } from 'lucide-react';
+import { GitBranch, Plus, Minus, Check, ChevronLeft, FileText, Columns2, Rows3 } from 'lucide-react';
+import { useSettings } from '../../lib/SettingsContext';
 
 interface DiffLine {
   type: 'add' | 'remove' | 'context';
@@ -16,6 +17,8 @@ interface DiffHunk {
 }
 
 export default function GitTab({ projectId }: { projectId: string }) {
+  const { diffView } = useSettings();
+  const [viewMode, setViewMode] = useState<'unified' | 'split'>(diffView);
   const [data, setData] = useState<{ branch: string; staged: any[]; unstaged: any[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [diffData, setDiffData] = useState<{ filePath: string; type: string; hunks: DiffHunk[] } | null>(null);
@@ -121,6 +124,77 @@ export default function GitTab({ projectId }: { projectId: string }) {
   };
 
   if (diffData) {
+    const renderUnifiedView = () => (
+      <div className="min-w-max">
+        {diffData.hunks!.map((hunk, hi) => (
+          <div key={hi}>
+            <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-1 text-xs font-mono text-blue-600 dark:text-blue-400 border-b border-blue-100 dark:border-blue-800 sticky top-0 z-10">
+              {hunk.header}
+            </div>
+            {hunk.lines.map((line, li) => {
+              const isAdd = line.type === 'add';
+              const isRemove = line.type === 'remove';
+              return (
+                <div
+                  key={li}
+                  className={`flex font-mono text-xs leading-5 ${isAdd ? 'bg-green-50 dark:bg-green-900/20' : isRemove ? 'bg-red-50 dark:bg-red-900/20' : 'bg-white dark:bg-gray-800'}`}
+                >
+                  <span className={`w-10 shrink-0 text-right pr-2 select-none sticky left-0 z-[5] ${isRemove ? 'text-red-300 dark:text-red-600 bg-red-50 dark:bg-red-900/20' : isAdd ? 'text-gray-300 dark:text-gray-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
+                    {line.oldLine ?? ''}
+                  </span>
+                  <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300 dark:text-green-600' : isRemove ? 'text-red-300 dark:text-red-600' : 'text-gray-300 dark:text-gray-600'} border-r border-gray-200 dark:border-gray-700`}>
+                    {line.newLine ?? ''}
+                  </span>
+                  <span className={`w-5 shrink-0 text-center select-none ${isAdd ? 'text-green-400 dark:text-green-500' : isRemove ? 'text-red-400 dark:text-red-500' : 'text-gray-300 dark:text-gray-600'}`}>
+                    {isAdd ? '+' : isRemove ? '-' : ' '}
+                  </span>
+                  <pre className={`whitespace-pre px-1 ${isAdd ? 'text-green-800 dark:text-green-300' : isRemove ? 'text-red-800 dark:text-red-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                    {line.content}
+                  </pre>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+
+    const renderSplitView = () => (
+      <div className="min-w-max">
+        {diffData.hunks!.map((hunk, hi) => (
+          <div key={hi}>
+            <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-1 text-xs font-mono text-blue-600 dark:text-blue-400 border-b border-blue-100 dark:border-blue-800 sticky top-0 z-10">
+              {hunk.header}
+            </div>
+            {hunk.lines.map((line, li) => {
+              const isAdd = line.type === 'add';
+              const isRemove = line.type === 'remove';
+              return (
+                <div key={li} className="flex font-mono text-xs leading-5">
+                  <div className={`flex shrink-0 border-r-2 border-gray-300 dark:border-gray-600 ${isRemove ? 'bg-red-50 dark:bg-red-900/20' : isAdd ? 'bg-white dark:bg-gray-800' : 'bg-white dark:bg-gray-800'}`}>
+                    <span className={`w-10 shrink-0 text-right pr-2 select-none sticky left-0 z-[5] ${isRemove ? 'text-red-300 dark:text-red-600 bg-red-50 dark:bg-red-900/20' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
+                      {line.oldLine ?? ''}
+                    </span>
+                    <pre className={`whitespace-pre px-1 min-w-[200px] ${isRemove ? 'text-red-800 dark:text-red-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                      {isRemove ? line.content : isAdd ? '' : line.content}
+                    </pre>
+                  </div>
+                  <div className={`flex shrink-0 ${isAdd ? 'bg-green-50 dark:bg-green-900/20' : isRemove ? 'bg-gray-50 dark:bg-gray-900/50' : 'bg-white dark:bg-gray-800'}`}>
+                    <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300 dark:text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
+                      {line.newLine ?? ''}
+                    </span>
+                    <pre className={`whitespace-pre px-1 min-w-[200px] ${isAdd ? 'text-green-800 dark:text-green-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                      {isAdd ? line.content : isRemove ? '' : line.content}
+                    </pre>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+
     return (
       <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
         <header className="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0 flex items-center gap-3">
@@ -131,47 +205,21 @@ export default function GitTab({ projectId }: { projectId: string }) {
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{diffData.filePath}</h2>
             <span className="text-xs text-gray-500 dark:text-gray-400">{diffData.type === 'staged' ? '已暂存的变更' : '未暂存的变更'}</span>
           </div>
+          <button
+            onClick={() => setViewMode(m => m === 'unified' ? 'split' : 'unified')}
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+            title={viewMode === 'unified' ? '切换为分栏视图' : '切换为合并视图'}
+          >
+            {viewMode === 'unified' ? <Columns2 className="w-4 h-4" /> : <Rows3 className="w-4 h-4" />}
+          </button>
         </header>
 
         <div className="flex-1 overflow-auto">
           {diffLoading ? (
             <div className="text-center py-10 text-gray-400 dark:text-gray-500">加载中...</div>
-          ) : diffData.hunks.length === 0 ? (
+          ) : diffData.hunks!.length === 0 ? (
             <div className="text-center py-10 text-gray-400 dark:text-gray-500">无变更内容</div>
-          ) : (
-            <div className="min-w-max">
-            {diffData.hunks.map((hunk, hi) => (
-              <div key={hi}>
-                <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-1 text-xs font-mono text-blue-600 dark:text-blue-400 border-b border-blue-100 dark:border-blue-800 sticky top-0 z-10">
-                  {hunk.header}
-                </div>
-                {hunk.lines.map((line, li) => {
-                  const isAdd = line.type === 'add';
-                  const isRemove = line.type === 'remove';
-                  return (
-                    <div
-                      key={li}
-                      className={`flex font-mono text-xs leading-5 ${isAdd ? 'bg-green-50 dark:bg-green-900/20' : isRemove ? 'bg-red-50 dark:bg-red-900/20' : 'bg-white dark:bg-gray-800'}`}
-                    >
-                      <span className={`w-10 shrink-0 text-right pr-2 select-none sticky left-0 z-[5] ${isRemove ? 'text-red-300 dark:text-red-600 bg-red-50 dark:bg-red-900/20' : isAdd ? 'text-gray-300 dark:text-gray-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
-                        {line.oldLine ?? ''}
-                      </span>
-                      <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300 dark:text-green-600' : isRemove ? 'text-red-300 dark:text-red-600' : 'text-gray-300 dark:text-gray-600'} border-r border-gray-200 dark:border-gray-700`}>
-                        {line.newLine ?? ''}
-                      </span>
-                      <span className={`w-5 shrink-0 text-center select-none ${isAdd ? 'text-green-400 dark:text-green-500' : isRemove ? 'text-red-400 dark:text-red-500' : 'text-gray-300 dark:text-gray-600'}`}>
-                        {isAdd ? '+' : isRemove ? '-' : ' '}
-                      </span>
-                      <pre className={`whitespace-pre px-1 ${isAdd ? 'text-green-800 dark:text-green-300' : isRemove ? 'text-red-800 dark:text-red-300' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {line.content}
-                      </pre>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-            </div>
-          )}
+          ) : viewMode === 'unified' ? renderUnifiedView() : renderSplitView()}
         </div>
       </div>
     );
