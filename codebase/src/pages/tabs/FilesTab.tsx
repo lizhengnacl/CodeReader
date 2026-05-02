@@ -33,7 +33,7 @@ export default function FilesTab({ projectId, project }: { projectId: string; pr
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/projects')} className="p-1 -ml-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+          <button onClick={() => navigate(-1)} className="p-1 -ml-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div>
