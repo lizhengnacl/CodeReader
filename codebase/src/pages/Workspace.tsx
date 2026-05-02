@@ -147,10 +147,24 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
   const [searchResults, setSearchResults] = useState<number[]>([]);
   const [currentResult, setCurrentResult] = useState(0);
   const [isImage, setIsImage] = useState(false);
+  const [highlightLine, setHighlightLine] = useState<number | null>(null);
+  const [highlightRange, setHighlightRange] = useState<[number, number] | null>(null);
 
   const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.ico']);
 
   const fileIsImage = IMAGE_EXTS.has('.' + (displayFileName.split('.').pop() || '').toLowerCase());
+
+  function parseLineHash(hash: string): { line: number | null; range: [number, number] | null } {
+    const rangeMatch = hash.match(/^#L(\d+)-L(\d+)$/);
+    if (rangeMatch) {
+      return { line: null, range: [parseInt(rangeMatch[1], 10), parseInt(rangeMatch[2], 10)] };
+    }
+    const lineMatch = hash.match(/^#L(\d+)$/);
+    if (lineMatch) {
+      return { line: parseInt(lineMatch[1], 10), range: null };
+    }
+    return { line: null, range: null };
+  }
 
   useEffect(() => {
     if (!filePath) return;
@@ -170,11 +184,16 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
         }
         setLoading(false);
         setTimeout(() => {
-          const hash = window.location.hash;
-          const match = hash.match(/^#L(\d+)$/);
-          if (match) {
-            const lineNum = parseInt(match[1], 10) - 1;
-            const el = document.getElementById(`line-${lineNum}`);
+          const { line, range } = parseLineHash(window.location.hash);
+          if (line) {
+            setHighlightLine(line);
+            setHighlightRange(null);
+            const el = document.getElementById(`line-${line - 1}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else if (range) {
+            setHighlightLine(null);
+            setHighlightRange(range);
+            const el = document.getElementById(`line-${range[0] - 1}`);
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }, 100);
@@ -310,16 +329,50 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
         ) : (
           <div className="flex min-w-max">
             <div className="w-12 shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 py-4 text-right pr-3 select-none">
-              {lines.map((_, i) => (
-                <div key={i} id={`line-${i}`} className="text-gray-400 dark:text-gray-600 font-mono" style={{ fontSize: `${fontSize}px`, height: `${lineHeight}px`, lineHeight: `${lineHeight}px` }}>{i + 1}</div>
-              ))}
+              {lines.map((_, i) => {
+                const lineNum = i + 1;
+                const isHighlighted = highlightLine === lineNum || (highlightRange !== null && lineNum >= highlightRange[0] && lineNum <= highlightRange[1]);
+                return (
+                  <a
+                    key={i}
+                    id={`line-${i}`}
+                    href={`#L${lineNum}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setHighlightLine(lineNum);
+                      setHighlightRange(null);
+                      window.history.replaceState(null, '', `#L${lineNum}`);
+                    }}
+                    className={`block font-mono cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition-colors ${
+                      isHighlighted ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-400 dark:text-gray-600'
+                    }`}
+                    style={{ fontSize: `${fontSize}px`, height: `${lineHeight}px`, lineHeight: `${lineHeight}px` }}
+                  >
+                    {lineNum}
+                  </a>
+                );
+              })}
             </div>
             <div className="flex-1 py-4 px-4">
               <pre className="font-mono m-0" style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px` }}>
                 <code className={`hljs language-${lang}`}>
-                  {lines.map((line, i) => (
-                    <div key={i} id={`line-content-${i}`} className={`whitespace-pre ${searchResults.includes(i) ? 'bg-yellow-200/50 dark:bg-yellow-700/30' : ''}`} style={{ height: `${lineHeight}px` }} dangerouslySetInnerHTML={{ __html: line || ' ' }} />
-                  ))}
+                  {lines.map((line, i) => {
+                    const lineNum = i + 1;
+                    const isHighlighted = highlightLine === lineNum || (highlightRange !== null && lineNum >= highlightRange[0] && lineNum <= highlightRange[1]);
+                    const isSearchMatch = searchResults.includes(i);
+                    return (
+                      <div
+                        key={i}
+                        id={`line-content-${i}`}
+                        className={`whitespace-pre ${
+                          isHighlighted ? 'bg-blue-100/60 dark:bg-blue-800/30 border-l-2 border-blue-500' :
+                          isSearchMatch ? 'bg-yellow-200/50 dark:bg-yellow-700/30' : ''
+                        }`}
+                        style={{ height: `${lineHeight}px` }}
+                        dangerouslySetInnerHTML={{ __html: line || ' ' }}
+                      />
+                    );
+                  })}
                 </code>
               </pre>
             </div>
