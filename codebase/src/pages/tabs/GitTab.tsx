@@ -26,6 +26,7 @@ export default function GitTab({ projectId }: { projectId: string }) {
   const [commitMsg, setCommitMsg] = useState('');
   const [committing, setCommitting] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const loadStatus = useCallback(() => {
@@ -117,6 +118,7 @@ export default function GitTab({ projectId }: { projectId: string }) {
   };
 
   const handleAiGenerate = () => {
+    setAiError('');
     setAiGenerating(true);
     fetch(`/api/projects/${projectId}/git/ai-commit`, {
       method: 'POST',
@@ -128,12 +130,12 @@ export default function GitTab({ projectId }: { projectId: string }) {
         if (data.message) {
           setCommitMsg(data.message);
         } else if (data.error) {
-          alert(data.error);
+          setAiError(data.error);
         }
       })
       .catch(() => {
         setAiGenerating(false);
-        alert('AI 生成失败，请检查网络连接和 API 配置');
+        setAiError('AI 生成失败，请检查网络连接和 API 配置');
       });
   };
 
@@ -342,27 +344,35 @@ export default function GitTab({ projectId }: { projectId: string }) {
       )}
 
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 shrink-0">
-        <div className="relative mb-3">
-          <textarea
-            placeholder="输入提交信息..."
-            value={commitMsg}
-            onChange={e => setCommitMsg(e.target.value)}
-            className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 pr-10 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-800 focus:border-transparent"
-            rows={3}
-          />
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-sm text-gray-500 dark:text-gray-400 flex-1">提交信息</span>
           <button
             onClick={handleAiGenerate}
-            disabled={aiGenerating || (data?.staged?.length || 0) === 0}
-            className={`absolute top-2 right-2 p-1.5 rounded-lg transition-all ${
+            disabled={aiGenerating || ((data?.staged?.length || 0) === 0 && (data?.unstaged?.length || 0) === 0)}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
               aiGenerating
-                ? 'text-purple-400 dark:text-purple-500 animate-pulse'
-                : 'text-gray-400 dark:text-gray-500 hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20'
-            } disabled:opacity-30 disabled:cursor-not-allowed`}
-            title="AI 生成提交信息"
+                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-500 dark:text-purple-400 animate-pulse'
+                : ((data?.staged?.length || 0) === 0 && (data?.unstaged?.length || 0) === 0)
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-50'
+                  : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 active:scale-95'
+            }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
+            {aiGenerating ? '生成中...' : 'AI 生成'}
           </button>
         </div>
+        <textarea
+          placeholder="输入提交信息..."
+          value={commitMsg}
+          onChange={e => { setCommitMsg(e.target.value); setAiError(''); }}
+          className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-800 focus:border-transparent mb-3"
+          rows={3}
+        />
+        {aiError && (
+          <div className="mb-3 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400">
+            {aiError}
+          </div>
+        )}
         <button
           onClick={handleCommit}
           disabled={committing || !commitMsg.trim() || (data?.staged?.length || 0) === 0}

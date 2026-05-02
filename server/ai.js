@@ -18,19 +18,31 @@ export async function aiCommitMessage(req, res) {
   }
 
   try {
-    let diffOutput;
+    let diffOutput = '';
+    let diffType = '';
+
     try {
       diffOutput = execSync('git diff --cached', {
         cwd: projectRoot,
         encoding: 'utf-8',
         maxBuffer: 5 * 1024 * 1024,
       });
-    } catch {
-      diffOutput = '';
+      if (diffOutput.trim()) diffType = 'staged';
+    } catch { /* no staged changes */ }
+
+    if (!diffOutput.trim()) {
+      try {
+        diffOutput = execSync('git diff', {
+          cwd: projectRoot,
+          encoding: 'utf-8',
+          maxBuffer: 5 * 1024 * 1024,
+        });
+        if (diffOutput.trim()) diffType = 'unstaged';
+      } catch { /* no unstaged changes */ }
     }
 
     if (!diffOutput.trim()) {
-      return res.status(400).json({ error: '没有已暂存的变更，请先暂存文件' });
+      return res.status(400).json({ error: '没有变更内容，无法生成提交信息' });
     }
 
     const truncatedDiff = diffOutput.length > 8000
@@ -42,7 +54,11 @@ export async function aiCommitMessage(req, res) {
 Git diff:
 ${truncatedDiff}`;
 
-    const url = `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
+    let baseEndpoint = baseUrl.replace(/\/+$/, '');
+    if (!baseEndpoint.endsWith('/v1') && !baseEndpoint.endsWith('/v2')) {
+      baseEndpoint += '/v1';
+    }
+    const url = `${baseEndpoint}/chat/completions`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -56,7 +72,7 @@ ${truncatedDiff}`;
           { role: 'user', content: prompt },
         ],
         temperature: 0.3,
-        max_tokens: 200,
+        max_tokens: 1024,
       }),
     });
 
@@ -69,7 +85,21 @@ ${truncatedDiff}`;
     }
 
     const data = await response.json();
-    const message = (data.choices?.[0]?.message?.content || '').trim();
+    const choice = data.choices?.[0]?.message;
+    let message = (choice?.content || '').trim();
+
+    if (!message && choice?.reasoning_content) {
+      const reasoning = choice.reasoning_content;
+      const lines = reasoning.split('\n').filter(l => l.trim());
+      const lastLine = lines[lines.length - 1] || '';
+      const match = lastLine.match(/(?:feat|fix|refactor|docs|style|test|chore|perf|build|ci|revert)(?:\(.+\))?:\s*.+/i)
+        || lastLine.match(/^["']?(.+?)["']?$/);
+      if (match) {
+        message = match[0].replace(/^["']|["']$/g, '').trim();
+      } else {
+        message = lastLine.replace(/^["']|["']$/g, '').trim();
+      }
+    }
 
     if (!message) {
       return res.status(500).json({ error: 'AI 未返回有效的提交信息' });
