@@ -35,6 +35,8 @@ qrcode.generate(url, { small: true }, (qr) => {
     console.log(`      ${line}`);
   }
   console.log('');
+  console.log(`      ↗ ${url}`);
+  console.log('');
 });
 
 const server = spawn('node', ['server/index.js'], { stdio: 'inherit' });
