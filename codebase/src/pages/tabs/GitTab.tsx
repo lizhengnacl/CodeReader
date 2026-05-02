@@ -160,7 +160,7 @@ export default function GitTab({ projectId }: { projectId: string }) {
     );
 
     const renderSplitView = () => (
-      <div className="min-w-max">
+      <div>
         {diffData.hunks!.map((hunk, hi) => (
           <div key={hi}>
             <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-1 text-xs font-mono text-blue-600 dark:text-blue-400 border-b border-blue-100 dark:border-blue-800 sticky top-0 z-10">
@@ -171,19 +171,19 @@ export default function GitTab({ projectId }: { projectId: string }) {
               const isRemove = line.type === 'remove';
               return (
                 <div key={li} className="flex font-mono text-xs leading-5">
-                  <div className={`flex shrink-0 border-r-2 border-gray-300 dark:border-gray-600 ${isRemove ? 'bg-red-50 dark:bg-red-900/20' : isAdd ? 'bg-white dark:bg-gray-800' : 'bg-white dark:bg-gray-800'}`}>
-                    <span className={`w-10 shrink-0 text-right pr-2 select-none sticky left-0 z-[5] ${isRemove ? 'text-red-300 dark:text-red-600 bg-red-50 dark:bg-red-900/20' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
+                  <div className={`w-1/2 flex border-r border-gray-300 dark:border-gray-600 ${isRemove ? 'bg-red-50 dark:bg-red-900/20' : isAdd ? 'bg-gray-50 dark:bg-gray-900/30' : 'bg-white dark:bg-gray-800'}`}>
+                    <span className={`w-10 shrink-0 text-right pr-2 select-none ${isRemove ? 'text-red-300 dark:text-red-600 bg-red-50 dark:bg-red-900/20' : isAdd ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900/30' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
                       {line.oldLine ?? ''}
                     </span>
-                    <pre className={`whitespace-pre px-1 min-w-[200px] ${isRemove ? 'text-red-800 dark:text-red-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <pre className={`whitespace-pre px-1 flex-1 min-w-0 ${isRemove ? 'text-red-800 dark:text-red-300' : isAdd ? 'text-gray-300 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300'}`}>
                       {isRemove ? line.content : isAdd ? '' : line.content}
                     </pre>
                   </div>
-                  <div className={`flex shrink-0 ${isAdd ? 'bg-green-50 dark:bg-green-900/20' : isRemove ? 'bg-gray-50 dark:bg-gray-900/50' : 'bg-white dark:bg-gray-800'}`}>
-                    <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300 dark:text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
+                  <div className={`w-1/2 flex ${isAdd ? 'bg-green-50 dark:bg-green-900/20' : isRemove ? 'bg-gray-50 dark:bg-gray-900/30' : 'bg-white dark:bg-gray-800'}`}>
+                    <span className={`w-10 shrink-0 text-right pr-2 select-none ${isAdd ? 'text-green-300 dark:text-green-600 bg-green-50 dark:bg-green-900/20' : isRemove ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900/30' : 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800'} border-r border-gray-200 dark:border-gray-700`}>
                       {line.newLine ?? ''}
                     </span>
-                    <pre className={`whitespace-pre px-1 min-w-[200px] ${isAdd ? 'text-green-800 dark:text-green-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <pre className={`whitespace-pre px-1 flex-1 min-w-0 ${isAdd ? 'text-green-800 dark:text-green-300' : isRemove ? 'text-gray-300 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300'}`}>
                       {isAdd ? line.content : isRemove ? '' : line.content}
                     </pre>
                   </div>
