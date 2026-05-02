@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Moon, Type, Eye, Info, ChevronRight, Minus, Plus, Check, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Moon, Type, Eye, Info, ChevronRight, Minus, Plus, Check, X, Sparkles } from 'lucide-react';
 import { useTheme } from '../../lib/ThemeContext';
 import { useSettings } from '../../lib/SettingsContext';
 
@@ -15,6 +15,15 @@ export default function SettingsTab() {
   const isDark = theme === 'dark';
   const [showFontPicker, setShowFontPicker] = useState(false);
   const [showDiffPicker, setShowDiffPicker] = useState(false);
+  const [showAiConfig, setShowAiConfig] = useState(false);
+  const [aiConfig, setAiConfig] = useState({ apiKey: '', baseUrl: '', model: '', configured: false });
+
+  useEffect(() => {
+    fetch('/api/ai/config')
+      .then(res => res.json())
+      .then(setAiConfig)
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
@@ -57,6 +66,26 @@ export default function SettingsTab() {
                 <span>{DIFF_VIEWS.find(v => v.value === diffView)?.label}</span>
                 <ChevronRight className="w-4 h-4" />
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">AI 设置</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="flex items-center justify-between p-4 active:bg-gray-50 dark:active:bg-gray-700" onClick={() => setShowAiConfig(true)}>
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <div>
+                  <span className="text-sm text-gray-900 dark:text-gray-100">AI Commit</span>
+                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                    {aiConfig.configured
+                      ? `已配置 · ${aiConfig.model}`
+                      : '未配置'}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
             </div>
           </div>
         </section>
@@ -173,6 +202,56 @@ export default function SettingsTab() {
                   <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">{v.desc}</span>
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAiConfig && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowAiConfig(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-lg p-5 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI Commit 配置</h3>
+              <button onClick={() => setShowAiConfig(false)} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">状态</span>
+                  <span className={`text-sm font-medium ${aiConfig.configured ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                    {aiConfig.configured ? '已配置' : '未配置'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">API Key</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100 font-mono">{aiConfig.apiKey || '-'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Base URL</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100 font-mono truncate max-w-[200px]">{aiConfig.baseUrl}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">模型</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100 font-mono">{aiConfig.model}</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  请在项目根目录 <code className="bg-purple-100 dark:bg-purple-800/50 px-1.5 py-0.5 rounded text-xs font-mono">.env</code> 文件中配置以下变量：
+                </p>
+                <pre className="mt-3 text-xs font-mono text-purple-800 dark:text-purple-200 bg-purple-100/50 dark:bg-purple-900/30 p-3 rounded-lg overflow-x-auto">
+{`AI_API_KEY=sk-xxxxx
+AI_BASE_URL=https://api.openai.com/v1
+AI_MODEL=gpt-4o-mini`}
+                </pre>
+                <p className="mt-2 text-xs text-purple-600 dark:text-purple-400">
+                  支持 OpenAI、DeepSeek 等 OpenAI 兼容 API
+                </p>
+              </div>
             </div>
           </div>
         </div>

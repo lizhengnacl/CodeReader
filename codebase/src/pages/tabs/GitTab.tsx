@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GitBranch, Plus, Minus, Check, ChevronLeft, FileText, Columns2, Rows3 } from 'lucide-react';
+import { GitBranch, Plus, Minus, Check, ChevronLeft, FileText, Columns2, Rows3, Sparkles } from 'lucide-react';
 import { useSettings } from '../../lib/SettingsContext';
 
 interface DiffLine {
@@ -25,6 +25,7 @@ export default function GitTab({ projectId }: { projectId: string }) {
   const [diffLoading, setDiffLoading] = useState(false);
   const [commitMsg, setCommitMsg] = useState('');
   const [committing, setCommitting] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const loadStatus = useCallback(() => {
@@ -113,6 +114,27 @@ export default function GitTab({ projectId }: { projectId: string }) {
         }
       })
       .catch(() => setCommitting(false));
+  };
+
+  const handleAiGenerate = () => {
+    setAiGenerating(true);
+    fetch(`/api/projects/${projectId}/git/ai-commit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(res => res.json())
+      .then(data => {
+        setAiGenerating(false);
+        if (data.message) {
+          setCommitMsg(data.message);
+        } else if (data.error) {
+          alert(data.error);
+        }
+      })
+      .catch(() => {
+        setAiGenerating(false);
+        alert('AI 生成失败，请检查网络连接和 API 配置');
+      });
   };
 
   const statusColor = (status: string) => {
@@ -320,13 +342,27 @@ export default function GitTab({ projectId }: { projectId: string }) {
       )}
 
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 shrink-0">
-        <textarea
-          placeholder="输入提交信息..."
-          value={commitMsg}
-          onChange={e => setCommitMsg(e.target.value)}
-          className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-800 focus:border-transparent mb-3"
-          rows={3}
-        />
+        <div className="relative mb-3">
+          <textarea
+            placeholder="输入提交信息..."
+            value={commitMsg}
+            onChange={e => setCommitMsg(e.target.value)}
+            className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 pr-10 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-800 focus:border-transparent"
+            rows={3}
+          />
+          <button
+            onClick={handleAiGenerate}
+            disabled={aiGenerating || (data?.staged?.length || 0) === 0}
+            className={`absolute top-2 right-2 p-1.5 rounded-lg transition-all ${
+              aiGenerating
+                ? 'text-purple-400 dark:text-purple-500 animate-pulse'
+                : 'text-gray-400 dark:text-gray-500 hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+            } disabled:opacity-30 disabled:cursor-not-allowed`}
+            title="AI 生成提交信息"
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
+        </div>
         <button
           onClick={handleCommit}
           disabled={committing || !commitMsg.trim() || (data?.staged?.length || 0) === 0}

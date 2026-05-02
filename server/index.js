@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -7,6 +8,7 @@ import { listFiles, getFileContent } from './files.js';
 import { search } from './search.js';
 import { gitStatus, gitDiff, gitStage, gitUnstage, gitCommit } from './git.js';
 import { browseDirs } from './browse.js';
+import { aiCommitMessage, getAiConfig } from './ai.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -35,6 +37,8 @@ app.get('/api/projects/:projectId/git/diff', gitDiff);
 app.post('/api/projects/:projectId/git/stage', gitStage);
 app.post('/api/projects/:projectId/git/unstage', gitUnstage);
 app.post('/api/projects/:projectId/git/commit', gitCommit);
+app.post('/api/projects/:projectId/git/ai-commit', aiCommitMessage);
+app.get('/api/ai/config', getAiConfig);
 app.get('/api/browse', browseDirs);
 
 app.post('/api/projects', (req, res) => {
