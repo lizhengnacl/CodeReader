@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getProjects, getProjectById, addProject, removeProject } from './projects.js';
+import { getProjects, getProjectById, getProjectByName, addProject, removeProject } from './projects.js';
 import { listFiles, getFileContent } from './files.js';
 import { search } from './search.js';
 import { gitStatus, gitDiff, gitStage, gitUnstage, gitCommit } from './git.js';
@@ -18,26 +18,96 @@ const PRODUCTION = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 
+function resolveProjectFromWildcard(wildcard) {
+  const projects = getProjects();
+  let bestMatch = null;
+  let bestLen = 0;
+
+  for (const project of projects) {
+    const projPath = project.path.replace(/^\//, '');
+    if (wildcard === projPath || wildcard.startsWith(projPath + '/')) {
+      if (projPath.length > bestLen) {
+        bestMatch = project;
+        bestLen = projPath.length;
+        var actionAndRest = wildcard.slice(projPath.length + 1);
+      }
+    }
+  }
+
+  if (!bestMatch) {
+    const firstPart = wildcard.split('/')[0];
+    const byId = getProjectById(firstPart);
+    const byName = getProjectByName(firstPart);
+    if (byId) return { project: byId, actionAndRest: wildcard.slice(firstPart.length + 1) };
+    if (byName) return { project: byName, actionAndRest: wildcard.slice(firstPart.length + 1) };
+    return null;
+  }
+
+  return { project: bestMatch, actionAndRest: actionAndRest };
+}
+
 app.get('/api/projects', (req, res) => {
   const projects = getProjects();
   res.json(projects);
 });
 
-app.get('/api/projects/:projectId', (req, res) => {
-  const project = getProjectById(req.params.projectId);
-  if (!project) return res.status(404).json({ error: '项目不存在' });
-  res.json(project);
+app.get('/api/projects/*', (req, res) => {
+  const wildcard = req.params[0];
+  const result = resolveProjectFromWildcard(wildcard);
+  if (!result) return res.status(404).json({ error: '项目不存在' });
+  const { project, actionAndRest } = result;
+  req.params.projectId = project.id;
+
+  if (!actionAndRest) {
+    return res.json(project);
+  }
+
+  const [action, ...restParts] = actionAndRest.split('/');
+  const rest = restParts.join('/');
+
+  if (action === 'files') return listFiles(req, res);
+  if (action === 'code') return getFileContent(req, res);
+  if (action === 'search') return search(req, res);
+  if (action === 'git') {
+    if (rest === 'status') return gitStatus(req, res);
+    if (rest === 'diff') return gitDiff(req, res);
+  }
+
+  res.status(404).json({ error: '未知操作' });
 });
 
-app.get('/api/projects/:projectId/files', listFiles);
-app.get('/api/projects/:projectId/code', getFileContent);
-app.get('/api/projects/:projectId/search', search);
-app.get('/api/projects/:projectId/git/status', gitStatus);
-app.get('/api/projects/:projectId/git/diff', gitDiff);
-app.post('/api/projects/:projectId/git/stage', gitStage);
-app.post('/api/projects/:projectId/git/unstage', gitUnstage);
-app.post('/api/projects/:projectId/git/commit', gitCommit);
-app.post('/api/projects/:projectId/git/ai-commit', aiCommitMessage);
+app.post('/api/projects/*/git/stage', (req, res) => {
+  const wildcard = req.params[0];
+  const result = resolveProjectFromWildcard(wildcard);
+  if (!result) return res.status(404).json({ error: '项目不存在' });
+  req.params.projectId = result.project.id;
+  gitStage(req, res);
+});
+
+app.post('/api/projects/*/git/unstage', (req, res) => {
+  const wildcard = req.params[0];
+  const result = resolveProjectFromWildcard(wildcard);
+  if (!result) return res.status(404).json({ error: '项目不存在' });
+  req.params.projectId = result.project.id;
+  gitUnstage(req, res);
+});
+
+app.post('/api/projects/*/git/commit', (req, res) => {
+  const wildcard = req.params[0];
+  const result = resolveProjectFromWildcard(wildcard);
+  if (!result) return res.status(404).json({ error: '项目不存在' });
+  req.params.projectId = result.project.id;
+  gitCommit(req, res);
+});
+
+app.post('/api/projects/*/git/ai-commit', (req, res) => {
+  const wildcard = req.params[0];
+  const result = resolveProjectFromWildcard(wildcard);
+  if (!result) return res.status(404).json({ error: '项目不存在' });
+  req.params.projectId = result.project.id;
+  aiCommitMessage(req, res);
+});
+
 app.get('/api/ai/config', getAiConfig);
 app.get('/api/browse', browseDirs);
 

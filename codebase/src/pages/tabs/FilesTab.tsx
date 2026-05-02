@@ -14,7 +14,7 @@ function setFavorites(projectId: string, paths: string[]) {
   localStorage.setItem(`codereader-favorites-${projectId}`, JSON.stringify(paths));
 }
 
-export default function FilesTab({ projectId, project }: { projectId: string; project: any }) {
+export default function FilesTab({ projectId, project, basePath }: { projectId: string; project: any; basePath: string }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dirPath = searchParams.get('path') || '';
@@ -58,8 +58,8 @@ export default function FilesTab({ projectId, project }: { projectId: string; pr
   const branch = project?.branch || 'main';
 
   const lowerFilter = filter.toLowerCase();
-  const filteredFolders = data?.folders.filter(f => f.name.toLowerCase().includes(lowerFilter)) || [];
-  const filteredFiles = data?.files.filter(f => f.name.toLowerCase().includes(lowerFilter)) || [];
+  const filteredFolders = data?.folders?.filter(f => f.name.toLowerCase().includes(lowerFilter)) || [];
+  const filteredFiles = data?.files?.filter(f => f.name.toLowerCase().includes(lowerFilter)) || [];
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
@@ -119,7 +119,7 @@ export default function FilesTab({ projectId, project }: { projectId: string; pr
                 className={i === data.breadcrumbs.length - 1 ? 'text-gray-900 dark:text-gray-100' : 'text-blue-600 dark:text-blue-400 font-medium cursor-pointer'}
                 onClick={() => {
                   if (i < data.breadcrumbs.length - 1) {
-                    navigate(`/workspace/${projectId}?tab=files&path=${encodeURIComponent(bc.path)}`);
+                    navigate(`${basePath}?tab=files&path=${encodeURIComponent(bc.path)}`);
                   }
                 }}
               >
@@ -166,7 +166,7 @@ export default function FilesTab({ projectId, project }: { projectId: string; pr
               <div
                 key={folder.path}
                 className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 dark:active:bg-gray-700 cursor-pointer"
-                onClick={() => navigate(`/workspace/${projectId}?tab=files&path=${encodeURIComponent(folder.path)}`)}
+                onClick={() => navigate(`${basePath}?tab=files&path=${encodeURIComponent(folder.path)}`)}
               >
                 <FolderIcon className="w-5 h-5 text-blue-400 dark:text-blue-300 fill-blue-100 dark:fill-blue-900/30 shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -180,7 +180,7 @@ export default function FilesTab({ projectId, project }: { projectId: string; pr
               <div
                 key={file.path}
                 className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 dark:active:bg-gray-700 cursor-pointer"
-                onClick={() => navigate(`/workspace/${projectId}/code?file=${encodeURIComponent(file.path)}`)}
+                onClick={() => navigate(`${basePath}/blob/${file.path}`)}
               >
                 <FileIconByType fileName={file.name} className="w-5 h-5 shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -221,7 +221,7 @@ export default function FilesTab({ projectId, project }: { projectId: string; pr
                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer active:scale-[0.98] transition-all"
                         onClick={() => {
                           setShowFavs(false);
-                          navigate(`/workspace/${projectId}?tab=files&path=${encodeURIComponent(favPath)}`);
+                          navigate(`${basePath}?tab=files&path=${encodeURIComponent(favPath)}`);
                         }}
                       >
                         <FolderIcon className="w-4 h-4 text-yellow-500 fill-yellow-100 dark:fill-yellow-900/30 shrink-0" />

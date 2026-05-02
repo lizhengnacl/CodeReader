@@ -139,6 +139,11 @@ export function getProjectById(id) {
   return projects.find(p => p.id === id) || null;
 }
 
+export function getProjectByName(name) {
+  const projects = getProjects();
+  return projects.find(p => p.name === name) || null;
+}
+
 export function addProject(name, projPath) {
   const resolvedPath = path.resolve(projPath);
   if (!fs.existsSync(resolvedPath)) {
@@ -163,8 +168,12 @@ export function removeProject(id) {
   return { success: true };
 }
 
-export function getProjectPath(id) {
-  const idx = parseInt(id, 10) - 1;
-  if (idx < 0 || idx >= config.projects.length) return null;
-  return path.resolve(__dirname, '..', config.projects[idx].path);
+export function getProjectPath(idOrName) {
+  const idx = parseInt(idOrName, 10) - 1;
+  if (idx >= 0 && idx < config.projects.length) {
+    return path.resolve(__dirname, '..', config.projects[idx].path);
+  }
+  const proj = config.projects.find(p => p.name === idOrName);
+  if (proj) return path.resolve(__dirname, '..', proj.path);
+  return null;
 }

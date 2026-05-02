@@ -14,8 +14,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/projects" replace />} />
             <Route path="/projects" element={<ProjectList />} />
-            <Route path="/workspace/:projectId" element={<Workspace />} />
-            <Route path="/workspace/:projectId/code" element={<CodeViewer />} />
+            <Route path="/p/*" element={<Workspace />} />
             <Route path="*" element={<Navigate to="/projects" replace />} />
           </Routes>
         </BrowserRouter>

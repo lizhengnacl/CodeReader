@@ -124,7 +124,7 @@ export default function ProjectList() {
           filteredProjects.map(project => (
             <div
               key={project.id}
-              onClick={() => navigate(`/workspace/${project.id}?tab=files`)}
+              onClick={() => navigate(`/p${project.path}?tab=files`)}
               className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm dark:shadow-none border border-gray-100 dark:border-gray-700 active:scale-[0.98] transition-transform cursor-pointer relative"
             >
               {project.hasChanges && (

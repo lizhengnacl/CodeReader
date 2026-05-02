@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import FileIconByType from '../../components/FileIconByType';
 
-export default function SearchTab({ projectId }: { projectId: string }) {
+export default function SearchTab({ projectId, basePath }: { projectId: string; basePath: string }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('content');
   const [query, setQuery] = useState('');
@@ -67,7 +67,7 @@ export default function SearchTab({ projectId }: { projectId: string }) {
   };
 
   const openFile = (filePath: string) => {
-    navigate(`/workspace/${projectId}/code?file=${encodeURIComponent(filePath)}`);
+    navigate(`${basePath}/blob/${filePath}`);
   };
 
   return (

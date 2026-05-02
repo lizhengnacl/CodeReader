@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, MoreVertical, Edit3, List, Search, Settings2, Copy, Check, Type, X } from 'lucide-react';
 import hljs from 'highlight.js';
 import { useSettings } from '../lib/SettingsContext';
@@ -45,11 +45,24 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-export default function CodeViewer() {
+export default function CodeViewer({ legacy }: { legacy?: boolean }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const params = useParams();
+  const location = useLocation();
   const { fontSize, setFontSize } = useSettings();
-  const fileName = searchParams.get('file') || '';
+
+  let fileName = '';
+  let projectId = '';
+  if (legacy) {
+    fileName = searchParams.get('file') || '';
+    projectId = params.projectId || '';
+  } else {
+    const blobPath = params['*'] || '';
+    fileName = blobPath;
+    projectId = params.projectName || '';
+  }
+
   const displayFileName = fileName.split('/').pop() || 'Unknown';
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(true);
@@ -62,8 +75,6 @@ export default function CodeViewer() {
   const [searchResults, setSearchResults] = useState<number[]>([]);
   const [currentResult, setCurrentResult] = useState(0);
   const [projectPath, setProjectPath] = useState('');
-
-  const projectId = window.location.pathname.split('/')[2];
 
   useEffect(() => {
     fetch(`/api/projects/${projectId}`)
@@ -83,6 +94,15 @@ export default function CodeViewer() {
       .then(data => {
         setCode(data.content || '');
         setLoading(false);
+        setTimeout(() => {
+          const hash = location.hash;
+          const match = hash.match(/^#L(\d+)$/);
+          if (match) {
+            const lineNum = parseInt(match[1], 10) - 1;
+            const el = document.getElementById(`line-${lineNum}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
       })
       .catch(err => {
         setError(err.message);
