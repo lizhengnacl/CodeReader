@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Folder, Search, GitBranch, Settings, ChevronLeft, MoreVertical, Copy, Check, Type, X, List } from 'lucide-react';
+import { Folder, Search, GitBranch, Settings, ChevronLeft, MoreVertical, Copy, Check, Type, X, List, Home } from 'lucide-react';
 import hljs from 'highlight.js';
 import { cn } from '../lib/utils';
 import { useSettings } from '../lib/SettingsContext';
@@ -247,8 +247,11 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
     <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col">
       <header className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 shrink-0 sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(`${basePath}?tab=files`)} className="p-1 -ml-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+          <button onClick={() => navigate(`${basePath}?tab=files`)} className="p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
             <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button onClick={() => navigate('/projects')} className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full" title="返回项目列表">
+            <Home className="w-4 h-4" />
           </button>
           <div>
             <h2 className="text-base font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px]">{displayFileName}</h2>
