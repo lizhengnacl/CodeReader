@@ -134,7 +134,7 @@ if (PRODUCTION) {
   });
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '::', () => {
   if (PRODUCTION) {
     console.log(`CodeReader running at http://localhost:${PORT} (production)`);
   } else {
