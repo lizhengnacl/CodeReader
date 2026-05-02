@@ -130,13 +130,59 @@ export function getFileContent(req, res) {
       return res.status(413).json({ error: '文件过大，超过 2MB 限制' });
     }
 
-    const isBinary = fullPath.match(/\.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|mp3|mp4|zip|tar|gz)$/i);
+    const isImage = fullPath.match(/\.(png|jpg|jpeg|gif|ico|svg|webp|bmp)$/i);
+    if (isImage) {
+      return res.json({ content: '', binary: true, image: true });
+    }
+
+    const isBinary = fullPath.match(/\.(woff|woff2|ttf|eot|mp3|mp4|zip|tar|gz|pdf|exe|dll|so|dylib)$/i);
     if (isBinary) {
       return res.json({ content: '[二进制文件，无法预览]', binary: true });
     }
 
     const content = fs.readFileSync(fullPath, 'utf-8');
     res.json({ content, size: stat.size, modified: formatTime(stat.mtime) });
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return res.status(404).json({ error: '文件不存在' });
+    }
+    res.status(500).json({ error: '读取文件失败', detail: err.message });
+  }
+}
+
+export function getFileRaw(req, res) {
+  const { projectId } = req.params;
+  const filePath = req.query.file || '';
+  const projectRoot = getProjectPath(projectId);
+
+  if (!projectRoot) {
+    return res.status(404).json({ error: '项目不存在' });
+  }
+
+  const fullPath = path.join(projectRoot, filePath);
+
+  if (!fullPath.startsWith(projectRoot)) {
+    return res.status(403).json({ error: '禁止访问' });
+  }
+
+  try {
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      return res.status(400).json({ error: '不能读取目录' });
+    }
+
+    const ext = path.extname(fullPath).toLowerCase();
+    const mimeMap = {
+      '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif', '.svg': 'image/svg+xml', '.webp': 'image/webp',
+      '.bmp': 'image/bmp', '.ico': 'image/x-icon',
+    };
+    const mimeType = mimeMap[ext] || 'application/octet-stream';
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', stat.size);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    fs.createReadStream(fullPath).pipe(res);
   } catch (err) {
     if (err.code === 'ENOENT') {
       return res.status(404).json({ error: '文件不存在' });

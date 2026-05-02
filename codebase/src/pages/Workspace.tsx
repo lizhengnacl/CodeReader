@@ -146,6 +146,11 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
   const [showSearch, setShowSearch] = useState(false);
   const [searchResults, setSearchResults] = useState<number[]>([]);
   const [currentResult, setCurrentResult] = useState(0);
+  const [isImage, setIsImage] = useState(false);
+
+  const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.ico']);
+
+  const fileIsImage = IMAGE_EXTS.has('.' + (displayFileName.split('.').pop() || '').toLowerCase());
 
   useEffect(() => {
     if (!filePath) return;
@@ -156,7 +161,13 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
         return res.json();
       })
       .then(data => {
-        setCode(data.content || '');
+        if (data.image) {
+          setIsImage(true);
+          setCode('');
+        } else {
+          setIsImage(false);
+          setCode(data.content || '');
+        }
         setLoading(false);
         setTimeout(() => {
           const hash = window.location.hash;
@@ -285,6 +296,14 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
           <div className="text-center py-10 text-gray-400 dark:text-gray-500">加载中...</div>
         ) : error ? (
           <div className="text-center py-10 text-red-400">{error}</div>
+        ) : isImage ? (
+          <div className="flex items-center justify-center p-4">
+            <img
+              src={`/api/projects/${projectId}/raw?file=${encodeURIComponent(filePath)}`}
+              alt={displayFileName}
+              className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm"
+            />
+          </div>
         ) : (
           <div className="flex min-w-max">
             <div className="w-12 shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 py-4 text-right pr-3 select-none">
@@ -306,8 +325,8 @@ function CodeViewerInline({ projectId, filePath, projectPath }: { projectId: str
       </div>
 
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-around shrink-0 pb-safe">
-        <button onClick={() => setShowSearch(true)} className="p-2 flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600"><Search className="w-5 h-5" /><span className="text-[10px]">搜索</span></button>
-        <button onClick={() => setShowFontPicker(true)} className="p-2 flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600"><Type className="w-5 h-5" /><span className="text-[10px]">字体</span></button>
+        {!isImage && <button onClick={() => setShowSearch(true)} className="p-2 flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600"><Search className="w-5 h-5" /><span className="text-[10px]">搜索</span></button>}
+        {!isImage && <button onClick={() => setShowFontPicker(true)} className="p-2 flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600"><Type className="w-5 h-5" /><span className="text-[10px]">字体</span></button>}
         <button onClick={() => navigate(`${basePath}?tab=files`)} className="p-2 flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600"><List className="w-5 h-5" /><span className="text-[10px]">返回</span></button>
       </div>
 

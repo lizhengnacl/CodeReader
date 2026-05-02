@@ -4,7 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getProjects, getProjectById, getProjectByName, addProject, removeProject } from './projects.js';
-import { listFiles, getFileContent } from './files.js';
+import { listFiles, getFileContent, getFileRaw } from './files.js';
 import { search } from './search.js';
 import { gitStatus, gitDiff, gitStage, gitUnstage, gitCommit } from './git.js';
 import { browseDirs } from './browse.js';
@@ -67,6 +67,7 @@ app.get('/api/projects/*', (req, res) => {
 
   if (action === 'files') return listFiles(req, res);
   if (action === 'code') return getFileContent(req, res);
+  if (action === 'raw') return getFileRaw(req, res);
   if (action === 'search') return search(req, res);
   if (action === 'git') {
     if (rest === 'status') return gitStatus(req, res);
