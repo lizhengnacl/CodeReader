@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "server": "node server/index.js",
+    "dev:server": "node server/index.js",
     "dev:all": "node scripts/dev.js",
     "build": "vite build",
     "start": "NODE_ENV=production node server/index.js",

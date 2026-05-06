@@ -67,8 +67,8 @@ pnpm install
 pnpm dev:all
 
 # 或分别启动
-pnpm server   # 后端 API :3001
-pnpm dev      # 前端 Vite :5173
+pnpm dev:server   # 后端 API :3102
+pnpm dev      # 前端 Vite :5102
 ```
 
 启动后会显示局域网 IP 和二维码，手机扫描即可访问。
@@ -88,7 +88,7 @@ pnpm start
 可通过环境变量配置：
 
 ```bash
-PORT=8080 pnpm start   # 自定义端口，默认 3001
+PORT=8080 pnpm start   # 自定义端口，默认 3102
 ```
 
 ### 使用 Docker 部署
@@ -100,13 +100,13 @@ COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm && pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
-EXPOSE 3001
+EXPOSE 3102
 CMD ["node", "server/index.js"]
 ```
 
 ```bash
 docker build -t codereader .
-docker run -d -p 3001:3001 -v /path/to/your/code:/code codereader
+docker run -d -p 3102:3102 -v /path/to/your/code:/code codereader
 ```
 
 挂载卷后，在应用内添加项目路径 `/code/your-project` 即可浏览。
