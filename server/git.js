@@ -1,4 +1,6 @@
 import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import { getProjectPath } from './projects.js';
 
 export function gitStatus(req, res) {
@@ -15,9 +17,10 @@ export function gitStatus(req, res) {
       encoding: 'utf-8',
     }).trim();
 
-    const raw = execSync('git status --porcelain', {
+    const raw = execSync('git -c core.quotePath=false status --porcelain --untracked-files=all', {
       cwd: projectRoot,
       encoding: 'utf-8',
+      maxBuffer: 5 * 1024 * 1024,
     });
 
     const staged = [];
@@ -27,7 +30,10 @@ export function gitStatus(req, res) {
     for (const line of lines) {
       const indexStatus = line[0];
       const workTreeStatus = line[1];
-      const filePath = line.slice(3);
+      let filePath = line.slice(3);
+      if (filePath.startsWith('"') && filePath.endsWith('"')) {
+        filePath = filePath.slice(1, -1);
+      }
 
       const statusMap = {
         'M': 'M', 'A': 'A', 'D': 'D', 'R': 'R', 'C': 'C', '?': 'U', '!': 'I',
@@ -66,7 +72,15 @@ export function gitDiff(req, res) {
 
   try {
     let diffOutput;
-    if (type === 'staged') {
+    if (type === 'untracked') {
+      const fullPath = path.join(projectRoot, filePath);
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      const lines = content.split('\n');
+      const lastLine = lines[lines.length - 1];
+      if (lastLine === '') lines.pop();
+      const diffLines = lines.map(line => `+${line}`);
+      diffOutput = `--- /dev/null\n+++ b/${filePath}\n@@ -0,0 +1,${lines.length} @@\n${diffLines.join('\n')}\n`;
+    } else if (type === 'staged') {
       diffOutput = execSync(
         `git diff --cached -- ${escapeShellArg(filePath)}`,
         { cwd: projectRoot, encoding: 'utf-8', maxBuffer: 5 * 1024 * 1024 }

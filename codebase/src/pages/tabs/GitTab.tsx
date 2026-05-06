@@ -227,7 +227,7 @@ export default function GitTab({ projectId }: { projectId: string }) {
           </button>
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{diffData.filePath}</h2>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{diffData.type === 'staged' ? '已暂存的变更' : '未暂存的变更'}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{diffData.type === 'staged' ? '已暂存的变更' : diffData.type === 'untracked' ? '新文件（未跟踪）' : '未暂存的变更'}</span>
           </div>
           <button
             onClick={() => setViewMode(m => m === 'unified' ? 'split' : 'unified')}
@@ -241,7 +241,7 @@ export default function GitTab({ projectId }: { projectId: string }) {
         <div className="flex-1 overflow-auto">
           {diffLoading ? (
             <div className="text-center py-10 text-gray-400 dark:text-gray-500">加载中...</div>
-          ) : diffData.hunks!.length === 0 ? (
+          ) : !diffData.hunks || diffData.hunks.length === 0 ? (
             <div className="text-center py-10 text-gray-400 dark:text-gray-500">无变更内容</div>
           ) : viewMode === 'unified' ? renderUnifiedView() : renderSplitView()}
         </div>
@@ -318,8 +318,8 @@ export default function GitTab({ projectId }: { projectId: string }) {
                   <div key={i} className="flex items-center gap-2 px-4 py-2.5">
                     <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0 border ${statusColor(item.status)}`}>{item.status}</span>
                     <button
-                      onClick={() => item.status !== 'U' ? viewDiff(item.filePath, 'unstaged') : undefined}
-                      className={`flex-1 min-w-0 text-left ${item.status !== 'U' ? 'hover:text-blue-600 dark:hover:text-blue-400' : ''}`}
+                      onClick={() => viewDiff(item.filePath, item.status === 'U' ? 'untracked' : 'unstaged')}
+                      className="flex-1 min-w-0 text-left hover:text-blue-600 dark:hover:text-blue-400"
                     >
                       <div className="text-sm text-gray-900 dark:text-gray-100 truncate">{item.filePath}</div>
                     </button>
