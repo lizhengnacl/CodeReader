@@ -23,7 +23,7 @@ function getLocalIPs() {
   return { ipv4, ipv6 };
 }
 
-const PORT = 5173;
+const PORT = 5180;
 const { ipv4, ipv6 } = getLocalIPs();
 
 const primaryIP = ipv4[0] || '127.0.0.1';

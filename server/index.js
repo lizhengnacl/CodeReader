@@ -12,7 +12,7 @@ import { aiCommitMessage, getAiConfig } from './ai.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3010;
 const PRODUCTION = process.env.NODE_ENV === 'production';
 
 app.use(cors());
